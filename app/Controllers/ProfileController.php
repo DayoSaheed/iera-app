@@ -38,6 +38,9 @@ final class ProfileController extends Controller
     public function edit(Request $req): Response
     {
         $u = $this->user();
+        if ($req->get('legacy') !== '1' && \App\Models\Application::forUser($u['id'])) {
+            return (new VolunteerAreaController())->profile($req);
+        }
         $fields = array_values(array_filter(FormTemplate::fields($this->templateFor($u)), fn($f) => in_array($f['type'] ?? '', ['section', 'text', 'tel', 'email', 'number', 'select', 'city_auto', 'textarea', 'date'], true) && ($f['type'] === 'section' || in_array($f['name'] ?? '', self::SELF_FIELDS, true) || !in_array($f['name'] ?? '', User::COLUMNS, true))));
         $values = array_merge($u['profile'], array_intersect_key($u, array_flip(User::COLUMNS)), $_SESSION['_old'] ?? []);
         $totpUri = null;

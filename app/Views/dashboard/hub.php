@@ -7,8 +7,10 @@ $status = $approved ? 'Approved' : ($app['submitted_at'] ? Application::displayS
 ?>
 <div class="hero">
   <div><div class="eyebrow">Welcome back</div><h1>Assalamu alaikum, <?= e($app['first_name'] ?: $u['first_name'] ?: 'there') ?></h1>
-    <p><span class="chip" style="border-color:rgba(255,255,255,.4);color:#fff;background:transparent"><?= e($app['volunteer_category']) ?> volunteer</span> <span class="chip" style="border-color:var(--accent);color:var(--accent);background:transparent"><?= e($status) ?></span></p></div>
+    <p><span class="chip" style="border-color:rgba(255,255,255,.4);color:#fff;background:transparent"><?= e($app['volunteer_category']) ?> volunteer</span> <span class="chip" style="border-color:var(--accent);color:var(--accent);background:transparent"><?= e($status) ?></span> <span class="chip" style="border-color:rgba(255,255,255,.4);color:#fff;background:transparent">Level <?= $stats['level'] ?> · <?= e($stats['level_title']) ?></span><?php if ($stats['streak']): ?> <span class="chip" style="border-color:var(--primary);color:#fff;background:var(--primary)"><?= $stats['streak'] ?>w streak</span><?php endif; ?></p>
+    <div class="progress-bar" style="max-width:360px;background:rgba(255,255,255,.15);border-color:transparent"><span style="width:<?= $stats['progress'] ?>%"></span></div></div>
   <span class="grow"></span>
+  <div class="hero-stats"><div><b><?= $stats['xp'] ?></b><span>XP</span></div><?php if ($unreadDm): ?><a href="<?= e(url('/messages')) ?>" style="color:#fff;text-decoration:none"><b><?= $unreadDm ?></b><span>new messages</span></a><?php endif; ?></div>
   <a class="btn btn-accent" href="<?= e(url('/training')) ?>"><?= icon('graduation-cap', '', 16) ?> Training</a>
   <a class="btn btn-light" href="<?= e(url('/profile')) ?>"><?= icon('user', '', 16) ?> My profile</a>
 </div>
@@ -57,15 +59,41 @@ $status = $approved ? 'Approved' : ($app['submitted_at'] ? Application::displayS
   <div class="section-head"><div class="section-title"><span class="section-num">2</span><div><h2>Your volunteer hub</h2><p class="section-sub"><?= $approved ? 'Everything is unlocked. JazakAllah khair for joining.' : 'Training is open now. The rest unlocks once your application is approved.' ?></p></div></div></div>
   <div class="todo-list">
     <a class="todo" href="<?= e(url('/training')) ?>"><span class="todo-count"><?= icon('graduation-cap', '', 22) ?></span><span class="todo-text"><span class="todo-title">Training</span><br><span class="todo-sub">Dawah course, role training and certificates</span></span><?= icon('chevron-right', '', 18) ?></a>
-    <?php foreach ([['Calendar & events', 'Register for dawah events near you', '/calendar', 'calendar'], ['My teams', 'Your team, lead and members', '/teams/my', 'users'], ['Reports', 'Log your activity after each event', '/reports/events/pending', 'clipboard'], ['Notifications', 'Updates on your application and activity', '/notifications', 'bell']] as [$t, $sub, $href, $ico]): $locked = !$approved && $href !== '/notifications'; ?>
+    <?php foreach ([['Community Feed', 'Post updates & connect', '/community', 'message-square'], ['Member Directory', 'Find & message volunteers', '/members', 'users'], ['Log Impact', 'Submit activity reports · +20 XP', '/impact', 'clipboard'], ['Events', 'Upcoming dawah events', '/events', 'calendar'], ['Leaderboard', 'See your ranking', '/leaderboard', 'trophy'], ['Stories', 'Read and share dawah stories', '/stories', 'book']] as [$t, $sub, $href, $ico]): $locked = !$approved && $href !== '/stories'; ?>
     <a class="todo <?= $locked ? 'is-zero' : '' ?>" href="<?= $locked ? '#' : e(url($href)) ?>" <?= $locked ? 'title="Available after approval" aria-disabled="true"' : '' ?>><span class="todo-count"><?= icon($locked ? 'lock' : $ico, '', 22) ?></span><span class="todo-text"><span class="todo-title"><?= e($t) ?></span><br><span class="todo-sub"><?= $locked ? 'Available after approval' : e($sub) ?></span></span><?= icon('chevron-right', '', 18) ?></a>
     <?php endforeach; ?>
   </div>
 </section>
 
+<section class="section">
+  <div class="section-head"><div class="section-title"><span class="section-num">3</span><div><h2>Your stats and badges</h2><p class="section-sub"><?= $approved ? 'Earn XP by logging impact, completing training and sharing stories.' : 'Your stats unlock once your application is approved.' ?></p></div></div><?php if ($approved): ?><span class="grow"></span><a class="btn btn-sm btn-ghost" href="<?= e(url('/impact?new=1')) ?>"><?= icon('plus', '', 14) ?> Log impact</a><?php endif; ?></div>
+  <div class="<?= $approved ? '' : 'blur-gate' ?>">
+    <div class="stat-row">
+      <div class="stat accent"><div class="stat-label">Total XP</div><div class="stat-value"><?= $stats['xp'] ?></div><div class="stat-sub"><?= $stats['to_next'] ? $stats['to_next'] . ' XP to next level' : 'Max level' ?></div></div>
+      <div class="stat plain"><div class="stat-label">Hours</div><div class="stat-value"><?= rtrim(rtrim(number_format($stats['hours'], 1), '0'), '.') ?></div></div>
+      <div class="stat plain"><div class="stat-label">Reports</div><div class="stat-value"><?= $stats['reports'] ?></div></div>
+      <div class="stat primary"><div class="stat-label">Badges</div><div class="stat-value"><?= count($stats['badges']) ?></div><div class="stat-sub"><a href="<?= e(url('/profile')) ?>">View all badges</a></div></div>
+    </div>
+    <?php if ($stats['badges']): ?><div class="card" style="margin-top:14px"><div class="card-head"><h2>Recent badges</h2></div><?= \App\Core\View::partial('hub/_badges', ['stats' => ['badges' => array_slice($stats['badges'], -6)], 'showLocked' => false]) ?></div><?php endif; ?>
+    <?php if (!$approved): ?><div class="blur-gate-msg"><?= icon('lock', '', 18) ?> Your stats unlock once your application is approved.</div><?php endif; ?>
+  </div>
+</section>
+<?php if ($approved && ($recentPosts || $recentReports || $communityEvents)): ?>
+<section class="section">
+  <div class="section-head"><div class="section-title"><span class="section-num">4</span><div><h2>Community and activity</h2><p class="section-sub">The latest from the feed and your recent reports.</p></div></div></div>
+  <div class="two-col">
+    <div class="card"><div class="card-head"><h2>Community Feed</h2><span class="grow"></span><a class="btn btn-sm btn-ghost" href="<?= e(url('/community')) ?>">See all</a></div>
+      <?php if (!$recentPosts): ?><p class="muted">Be the first to post!</p><?php else: ?><ul class="check-list"><?php foreach ($recentPosts as $p): ?><li><span><strong><?= e($p['author_name']) ?></strong> <span class="muted"><?= e(mb_substr((string) $p['content'], 0, 90)) ?></span></span></li><?php endforeach; ?></ul><?php endif; ?></div>
+    <div class="card-stack">
+      <?php if ($recentReports): ?><div class="card"><div class="card-head"><h2>Recent Activity</h2><span class="grow"></span><a class="btn btn-sm btn-ghost" href="<?= e(url('/impact')) ?>">See all</a></div><ul class="check-list"><?php foreach ($recentReports as $r): ?><li><span><?= e($r['activity_type']) ?> <small class="muted"><?= e(fmt_date($r['report_date'])) ?> · <?= rtrim(rtrim(number_format((float) $r['hours'], 1), '0'), '.') ?>h</small></span><span class="pill pill-accent">+20 XP</span></li><?php endforeach; ?></ul></div><?php endif; ?>
+      <?php if ($communityEvents): ?><div class="card"><div class="card-head"><h2>Events</h2><span class="grow"></span><a class="btn btn-sm btn-ghost" href="<?= e(url('/events')) ?>">See all</a></div><ul class="check-list"><?php foreach ($communityEvents as $ev): ?><li><span><?= e($ev['title']) ?></span><small class="muted"><?= e(fmt_date($ev['event_date'])) ?></small></li><?php endforeach; ?></ul></div><?php endif; ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
 <?php if ($approved && ($upcoming || $pendingReports || $teams)): ?>
 <section class="section">
-  <div class="section-head"><div class="section-title"><span class="section-num">3</span><div><h2>Your teams and events</h2><p class="section-sub">Events for the teams you belong to and reports waiting for you.</p></div></div></div>
+  <div class="section-head"><div class="section-title"><span class="section-num">5</span><div><h2>Your teams and events</h2><p class="section-sub">Events for the teams you belong to and reports waiting for you.</p></div></div></div>
   <div class="two-col">
     <div class="card"><div class="card-head"><h2>Upcoming events</h2><span class="grow"></span><a class="btn btn-sm btn-ghost" href="<?= e(url('/calendar')) ?>">Calendar</a></div>
       <?php if (!$upcoming): ?><p class="muted">No events scheduled for your teams in the next 30 days.</p><?php else: ?><table class="table"><thead><tr><th>When</th><th>Event</th><th>Team</th></tr></thead><tbody><?php foreach ($upcoming as $s): ?><tr><td class="muted"><?= e(fmt_datetime($s['start_at'])) ?></td><td><strong><?= e($s['name']) ?></strong></td><td><?= e($s['team_name']) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></div>

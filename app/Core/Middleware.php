@@ -75,6 +75,21 @@ final class Middleware
             case 'admin':
                 self::require($user, Auth::isAdmin($user));
                 return null;
+            case 'hubapproved':
+                // Volunteer hub pages unlock once the application is approved (legacy accounts: once onboarded).
+                if (!$user) {
+                    throw new HttpException(401);
+                }
+                if (Auth::isSuperadmin($user) || Auth::isAdmin($user)) {
+                    return null;
+                }
+                $app = \App\Models\Application::forUser($user['id']);
+                $ok = $app ? \App\Models\Application::isApproved($app) : Auth::isOnboarded($user);
+                if (!$ok) {
+                    \App\Core\Flash::warning('Not yet available: this section unlocks once your application is approved.');
+                    return Response::redirect(Auth::homePath($user));
+                }
+                return null;
             default:
                 if (str_starts_with($name, 'role:')) {
                     $roles = explode('|', substr($name, 5));

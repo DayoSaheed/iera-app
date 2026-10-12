@@ -26,15 +26,27 @@ if ($me) {
     // Each item: [label, href, key, icon, section, children?]. Sections appear in this order: Overview, Programs, People, System, Account.
     if ($application) {
         $complete = \App\Models\Application::agreementComplete($application);
+        $approvedApp = \App\Models\Application::isApproved($application);
+        $lock = fn(array $it) => $approvedApp ? $it : $it + [6 => 'locked'];
+        $unreadDm = \App\Models\Community::unreadMessages($me['id']);
         $items[] = ['Home', '/dashboard', 'dashboard', 'home', 'Overview'];
         if (!$complete) {
             $items[] = ['Complete your profile', '/onboarding', 'onboarding', 'clipboard', 'Overview'];
         }
-        $items[] = ['Training', '/training', 'training', 'graduation-cap', 'Overview'];
-        if (\App\Models\Application::isUk($application) && $complete) {
+        $items[] = $lock(['Community Feed', '/community', 'community', 'message-square', 'Programs']);
+        $items[] = $lock(['Events', '/events', 'events', 'calendar', 'Programs']);
+        $items[] = $lock(['Members', '/members', 'members', 'users', 'Programs']);
+        $items[] = ['Training', '/training', 'training', 'graduation-cap', 'Programs'];
+        $items[] = $lock(['Log Impact', '/impact', 'impact', 'clipboard', 'Programs']);
+        $items[] = $lock(['Leaderboard', '/leaderboard', 'leaderboard', 'trophy', 'Programs']);
+        $items[] = $lock(['Messages', '/messages', 'messages', 'mail', 'Programs', null, $unreadDm]);
+        $items[] = ['Stories', '/stories', 'stories', 'book', 'Programs'];
+        if (\App\Models\Application::isUk($application) && $complete && empty($application['call_scheduled'])) {
             $items[] = ['Book your interview', '/book-interview', 'interview', 'calendar', 'Overview'];
         }
+        $items[] = ['Settings', '/settings', 'settings-user', 'settings', 'Account'];
         $items[] = ['Notifications', '/notifications', 'notifications', 'bell', 'Account'];
+        $items[] = ['Report Issue', '/my-feedback', 'feedback', 'alert-triangle', 'Account'];
     }
     if ($onboarded) {
         if ($super) {
@@ -128,8 +140,10 @@ $activeList = $active === 'admin' ? 'admin-' . ($_GET['type'] ?? 'volunteer') : 
           <?php endforeach; ?>
           </div>
         </details>
+      <?php elseif (($it[6] ?? null) === 'locked'): ?>
+        <span class="nav-link is-locked" title="Available after approval"><?= icon($icon, 'nav-icon') ?><?= e($label) ?><?= icon('lock', 'nav-lock', 13) ?></span>
       <?php else: ?>
-        <a class="nav-link <?= $active === $key ? 'is-active' : '' ?>" href="<?= e(url($href)) ?>"><?= icon($icon, 'nav-icon') ?><?= e($label) ?></a>
+        <a class="nav-link <?= $active === $key ? 'is-active' : '' ?>" href="<?= e(url($href)) ?>"><?= icon($icon, 'nav-icon') ?><?= e($label) ?><?php if (!empty($it[6]) && is_int($it[6])): ?><span class="nav-count"><?= $it[6] ?></span><?php endif; ?></a>
       <?php endif; ?>
     <?php endforeach; ?>
   </nav>

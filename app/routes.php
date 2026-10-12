@@ -14,6 +14,7 @@ use App\Controllers\EventController;
 use App\Controllers\MenteeController;
 use App\Controllers\NotificationController;
 use App\Controllers\OnboardingController;
+use App\Controllers\VolunteerAreaController;
 use App\Controllers\ProfileController;
 use App\Controllers\RegistrationController;
 use App\Controllers\ReportController;
@@ -94,6 +95,31 @@ $r->post('/upload-id', [OnboardingController::class, 'uploadIdSubmit'], ['auth']
 $r->get('/upload-cv', [OnboardingController::class, 'uploadCv'], ['auth']);
 $r->post('/upload-cv', [OnboardingController::class, 'uploadCvSubmit'], ['auth']);
 $r->post('/online-interest', [OnboardingController::class, 'onlineInterest'], ['auth']);
+// Volunteer hub (Connect): approval-locked pages use the hubapproved guard
+$r->get('/impact', [VolunteerAreaController::class, 'impact'], ['hubapproved']);
+$r->post('/impact', [VolunteerAreaController::class, 'impactSubmit'], ['hubapproved']);
+$r->get('/leaderboard', [VolunteerAreaController::class, 'leaderboard'], ['hubapproved']);
+$r->get('/community', [VolunteerAreaController::class, 'community'], ['hubapproved']);
+$r->post('/community/post', [VolunteerAreaController::class, 'post'], ['hubapproved']);
+$r->post('/community/post/{id}', [VolunteerAreaController::class, 'postAction'], ['hubapproved']);
+$r->get('/members', [VolunteerAreaController::class, 'members'], ['hubapproved']);
+$r->get('/members/{id}', [VolunteerAreaController::class, 'member'], ['hubapproved']);
+$r->get('/groups', [VolunteerAreaController::class, 'groups'], ['auth']);
+$r->post('/groups/{slug}/toggle', [VolunteerAreaController::class, 'toggleGroup'], ['auth']);
+$r->get('/messages', [VolunteerAreaController::class, 'messages'], ['hubapproved']);
+$r->post('/messages', [VolunteerAreaController::class, 'sendMessage'], ['hubapproved']);
+$r->get('/events', [VolunteerAreaController::class, 'events'], ['hubapproved']);
+$r->post('/events/{id}/rsvp', [VolunteerAreaController::class, 'rsvp'], ['hubapproved']);
+$r->get('/stories', [VolunteerAreaController::class, 'stories'], ['auth']);
+$r->get('/stories/submit', [VolunteerAreaController::class, 'submitStoryForm'], ['auth']);
+$r->post('/stories/submit', [VolunteerAreaController::class, 'submitStory'], ['auth']);
+$r->get('/stories/{id}', [VolunteerAreaController::class, 'story'], ['auth']);
+$r->get('/my-feedback', [VolunteerAreaController::class, 'myFeedback'], ['auth']);
+$r->post('/feedback', [VolunteerAreaController::class, 'submitFeedback'], ['auth']);
+$r->post('/feedback/{id}', [VolunteerAreaController::class, 'feedbackAction'], ['auth']);
+$r->get('/settings', [VolunteerAreaController::class, 'settings'], ['auth']);
+$r->post('/settings', [VolunteerAreaController::class, 'saveSettings'], ['auth']);
+$r->post('/profile/connect', [VolunteerAreaController::class, 'saveProfile'], ['auth']);
 $r->get('/newmuslim/home', [DashboardController::class, 'newMuslimHome'], ['approved', 'newmuslim']);
 
 // ---- teams -----------------------------------------------------------

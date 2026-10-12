@@ -83,6 +83,7 @@ $impersonator = $_SESSION['impersonator'] ?? null;
 </dialog>
 <?php endif; ?>
 <?= \App\Core\View::partial('partials/refer_modal') ?>
+<?php if ($me && ($me['type'] === 'volunteer' || Auth::isAdmin($me)) && \App\Models\Application::forUser($me['id']) || ($me && Auth::isAdmin($me))): ?><?= \App\Core\View::partial('partials/feedback_button') ?><?php endif; ?>
 <script src="<?= e(url('/assets/js/app.js?v=' . APP_VERSION)) ?>" defer></script>
 <?= $scripts ?? '' ?>
 </body>

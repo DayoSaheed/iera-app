@@ -87,8 +87,13 @@ final class DashboardController extends Controller
             ['Onboarding interview', !empty($app['call_scheduled']) || $app['interview_status'] === 'completed', \App\Models\Application::isUk($app) ? '/book-interview' : null, \App\Models\Application::isUk($app) ? 'book now' : 'to be scheduled'],
         ];
         $done = count(array_filter($checks, fn($c) => $c[1]));
+        $stats = \App\Services\Gamification::stats($u['id'], $app);
         return $this->view('dashboard/hub', [
-            'u' => $u, 'app' => $app, 'approved' => $approved, 'docs' => $docs, 'checks' => $checks,
+            'u' => $u, 'app' => $app, 'approved' => $approved, 'docs' => $docs, 'checks' => $checks, 'stats' => $stats,
+            'recentPosts' => $approved ? array_slice(\App\Models\Community::posts(3), 0, 3) : [],
+            'recentReports' => array_slice(\App\Services\Gamification::reports($u['id'], 4), 0, 4),
+            'unreadDm' => \App\Models\Community::unreadMessages($u['id']),
+            'communityEvents' => $approved ? array_slice(\App\Models\Community::events('upcoming'), 0, 3) : [],
             'pct' => (int) round($done / count($checks) * 100),
             'booked' => \App\Services\Onboarding::bookedSlot($app),
             'upcoming' => $approved && $teamIds ? array_slice(SubEvent::window($teamIds, now(), date('Y-m-d H:i:s', strtotime('+30 days'))), 0, 6) : [],

@@ -370,3 +370,16 @@
   // stage flash removal
   const fl = $('[data-ob-flash]'); if (fl) setTimeout(() => fl.remove(), 1700);
 })();
+
+// hub helpers: toggles, feedback context, file counts
+(() => {
+  document.querySelectorAll('[data-toggle-target]').forEach(b => b.addEventListener('click', () => { const t = document.getElementById(b.getAttribute('data-toggle-target')); if (t) { t.hidden = !t.hidden; if (!t.hidden) { const f = t.querySelector('input,textarea,select'); f && f.focus(); } } }));
+  const fb = document.querySelector('[data-feedback-form]');
+  if (fb) {
+    const ua = navigator.userAgent, browser = /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Other';
+    const w = window.innerWidth, device = w < 768 ? 'Mobile' : w < 1024 ? 'Tablet' : 'Desktop';
+    fb.querySelector('[data-fb-url]').value = location.href; fb.querySelector('[data-fb-path]').value = location.pathname; fb.querySelector('[data-fb-browser]').value = browser; fb.querySelector('[data-fb-device]').value = device; fb.querySelector('[data-fb-screen]').value = w + 'x' + window.innerHeight;
+    const ctx = fb.querySelector('[data-feedback-context]'); if (ctx) ctx.textContent = 'Page: ' + location.pathname + ' · Browser: ' + browser + ' · Device: ' + device + ' · Screen: ' + w + '×' + window.innerHeight;
+  }
+  document.querySelectorAll('[data-count-files]').forEach(i => i.addEventListener('change', () => { const c = document.querySelector('[data-file-count]'); if (c) c.textContent = i.files.length + '/6 photos selected'; }));
+})();
