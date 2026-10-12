@@ -7,6 +7,7 @@ This guide takes the app from the release zip to a live subdomain. Replace `app.
 1. cPanel → **Domains** → *Create A New Domain*: `app.iera.ca`.
    * Untick *Share document root*.
    * Document root: **`iera-app/public`** (the app's code and secrets then live in `/home/cpuser/iera-app`, one level above anything the web can reach).
+   * If you see an "Index of /" listing with folders like `app/` and `config/`, the document root is `iera-app` instead of `iera-app/public`. Change it in cPanel → Domains → *Manage* → Document Root. The app also ships a root `.htaccess` that routes everything into `public/` and blocks the private folders, so it keeps working either way, but the `public/` document root is the correct setup.
 2. cPanel → **MultiPHP Manager** → select the subdomain → **PHP 8.2** or newer.
 3. cPanel → **Select PHP Version** → *Extensions*: tick `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`, `gd`.
    Under *Options* set `upload_max_filesize` and `post_max_size` to at least 16M.

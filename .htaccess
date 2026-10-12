@@ -1,0 +1,14 @@
+# iERA App - safety net when the document root points at the project folder instead of public/.
+# Everything is routed into public/, and the private folders are never served.
+Options -Indexes
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(app|config|storage|sql|tools|cron|data|tests|scripts|vendor)(/|$) - [F,L]
+  RewriteRule ^(\.git|\.env|composer\.(json|lock)|DEPLOYMENT\.md|README\.md|\.htaccess)$ - [F,L]
+  RewriteCond %{REQUEST_URI} !^/public/
+  RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+<IfModule !mod_rewrite.c>
+  # Without mod_rewrite, at least hide the listing and send visitors to public/
+  DirectoryIndex index.php
+</IfModule>
