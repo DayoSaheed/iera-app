@@ -33,7 +33,8 @@ final class App
             Session::start();
             $response = $this->handle($this->request);
         } catch (HttpException $e) {
-            $response = $this->errorResponse($e->status, $e->getMessage());
+            // A 302 HttpException carries the redirect target as its message (used by controllers that need to bail out early).
+            $response = $e->status === 302 ? Response::redirect($e->getMessage()) : $this->errorResponse($e->status, $e->getMessage());
         } catch (Throwable $e) {
             Logger::error($e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             if (Config::get('app.debug')) {

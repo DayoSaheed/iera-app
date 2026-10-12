@@ -19,9 +19,23 @@ if ($me) {
         $me['type'] === 'org' => 'Organization',
         $nm => 'New Muslim',
         $lead => 'Team lead',
+        $me['type'] === 'volunteer' && ($app0 = \App\Models\Application::forUser($me['id'])) => $app0['volunteer_category'] . ' volunteer · ' . ($app0['status'] === 'Approved' ? 'Approved' : ($app0['submitted_at'] ? 'Application under review' : 'Profile incomplete')),
         default => implode(' · ', array_filter([Auth::hasSubGroup($me, 'daee') ? "Da'ee" : null, Auth::hasSubGroup($me, 'mentor') ? 'Mentor' : null])) ?: ($vol ? 'Volunteer' : 'Registration in progress'),
     };
+    $application = $me['type'] === 'volunteer' ? \App\Models\Application::forUser($me['id']) : null;
     // Each item: [label, href, key, icon, section, children?]. Sections appear in this order: Overview, Programs, People, System, Account.
+    if ($application) {
+        $complete = \App\Models\Application::agreementComplete($application);
+        $items[] = ['Home', '/dashboard', 'dashboard', 'home', 'Overview'];
+        if (!$complete) {
+            $items[] = ['Complete your profile', '/onboarding', 'onboarding', 'clipboard', 'Overview'];
+        }
+        $items[] = ['Training', '/training', 'training', 'graduation-cap', 'Overview'];
+        if (\App\Models\Application::isUk($application) && $complete) {
+            $items[] = ['Book your interview', '/book-interview', 'interview', 'calendar', 'Overview'];
+        }
+        $items[] = ['Notifications', '/notifications', 'notifications', 'bell', 'Account'];
+    }
     if ($onboarded) {
         if ($super) {
             $items[] = ['Dashboard', '/dashboard', 'dashboard', 'layout', 'Overview'];
@@ -30,7 +44,7 @@ if ($me) {
             $items[] = ['New Muslims you referred', '/admin/users?type=newmuslim', 'admin', 'compass', 'Overview'];
         } elseif ($nm) {
             $items[] = ['Home', '/newmuslim/home', 'nm-home', 'home', 'Overview'];
-        } else {
+        } elseif (!$application) {
             $items[] = ['Home', '/dashboard', 'dashboard', 'home', 'Overview'];
         }
         if ($vol && !$super) {

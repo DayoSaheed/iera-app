@@ -28,6 +28,11 @@ final class EmailService
     public static function send(string $key, array|string $to, array $vars = [], array $opts = []): bool
     {
         $tpl = EmailTemplate::get($key);
+        if (!$tpl && isset(Seeder::emailTemplates()[$key])) {
+            // Template added in a newer version: install the default so existing sites keep working.
+            Seeder::installEmailTemplate($key);
+            $tpl = EmailTemplate::get($key);
+        }
         if (!$tpl) {
             Logger::warning('Email template missing: ' . $key);
             return false;

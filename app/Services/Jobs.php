@@ -47,6 +47,10 @@ final class Jobs
             'sharepoint_sync' => ['SharePoint sync', $every5, 'Pushes submitted reports to SharePoint lists (when enabled).'],
             'export_reports' => ['Export report snapshots', $every6h, 'Writes JSON snapshots for BI tools.'],
             'housekeeping' => ['Housekeeping', $daily, 'Purges expired codes, old logs and job history.', ['hour' => 3]],
+            'interview_reminders' => ['Interview reminders (2 days before)', $daily, 'Emails UK applicants two days before their booked interview.', ['hour' => 8]],
+            'ra_reminders' => ['Risk assessments not started', $daily, 'Reminds the processors about UK risk assessments not started 3+ days after qualification.', ['hour' => 9]],
+            'onboarding_reminders' => ['Weekly onboarding reminders', $weekly, 'Monday: UK and Online applicants with outstanding onboarding steps.', ['dow' => [1], 'hour' => 8]],
+            'gorap_reminders' => ['GORAP training reminders', $weekly, 'Monday: approved Exhibitions / Street Dawah volunteers without the GORAP training.', ['dow' => [1], 'hour' => 8]],
         ];
     }
 
@@ -94,6 +98,26 @@ final class Jobs
     }
 
     // ---- jobs ----------------------------------------------------------
+
+    public static function interview_reminders(): string
+    {
+        return Onboarding::interviewReminders() . ' reminder(s) sent';
+    }
+
+    public static function ra_reminders(): string
+    {
+        return Onboarding::raReminders() . ' risk assessment(s) chased';
+    }
+
+    public static function onboarding_reminders(): string
+    {
+        return Onboarding::onboardingReminders() . ' applicant(s) reminded';
+    }
+
+    public static function gorap_reminders(): string
+    {
+        return Onboarding::gorapReminders() . ' volunteer(s) reminded';
+    }
 
     public static function materialize_events(): string
     {

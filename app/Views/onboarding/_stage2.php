@@ -1,0 +1,16 @@
+<?php use App\Models\Application; ?>
+<section class="ob-section">
+  <div class="field<?= $cls('motivation') ?>"><label>Why do you want to volunteer? <span class="req">*</span></label><div class="field-hint">Everyone has their own story — we want to bring yours to life. Share what draws you to this work in your own words.</div><textarea name="motivation" rows="4" placeholder="Share your motivation…"><?= $v('motivation') ?></textarea><?= $err('motivation') ?></div>
+  <div class="field<?= $cls('involved_in_dawah') ?>"><span class="field-label">Currently involved in dawah? <span class="req">*</span></span><div class="choices"><label class="choice"><input type="radio" name="involved_in_dawah" value="1" <?= $yn('involved_in_dawah') === '1' ? 'checked' : '' ?>> Yes</label><label class="choice"><input type="radio" name="involved_in_dawah" value="0" <?= $yn('involved_in_dawah') === '0' ? 'checked' : '' ?>> No</label></div><?= $err('involved_in_dawah') ?></div>
+  <div class="field<?= $cls('dawah_involvement_description') ?>" data-show-when="involved_in_dawah=1"><label>Describe your involvement <span class="req">*</span></label><textarea name="dawah_involvement_description" rows="3"><?= $v('dawah_involvement_description') ?></textarea><?= $err('dawah_involvement_description') ?></div>
+  <div class="field<?= $cls('dawah_experience_length') ?>"><span class="field-label">How much experience do you have with Dawah outreach? <span class="req">*</span></span><div class="choices"><?php foreach (Application::EXPERIENCE as $o): ?><label class="choice"><input type="radio" name="dawah_experience_length" value="<?= e($o) ?>" <?= $v('dawah_experience_length') === $o ? 'checked' : '' ?>> <?= e($o) ?></label><?php endforeach; ?></div><?= $err('dawah_experience_length') ?></div>
+  <div class="field"><span class="field-label">Have you given shahadah before?</span><div class="choices"><label class="choice"><input type="radio" name="given_shahadah_before" value="1" <?= $yn('given_shahadah_before') === '1' ? 'checked' : '' ?>> Yes</label><label class="choice"><input type="radio" name="given_shahadah_before" value="0" <?= $yn('given_shahadah_before') === '0' ? 'checked' : '' ?>> No</label></div></div>
+  <div class="field" data-show-when="given_shahadah_before=1"><label>How many shahadahs?</label><input type="number" min="0" name="shahadah_count" value="<?= $v('shahadah_count') ?>" placeholder="e.g. 5" style="max-width:200px"></div>
+  <div class="field"><span class="field-label">Languages Spoken</span>
+    <div class="tag-input" data-tags="languages" data-suggestions="<?= e(json_encode(Application::LANGUAGES)) ?>">
+      <div class="tag-list" data-tag-list><?php foreach ($app['languages'] as $l): ?><span class="tag"><?= e($l) ?><input type="hidden" name="languages[]" value="<?= e($l) ?>"><button type="button" class="tag-x" aria-label="Remove">&times;</button></span><?php endforeach; ?></div>
+      <input type="text" class="tag-field" placeholder="Search or type a language…" data-tag-field list="language-list"><datalist id="language-list"><?php foreach (Application::LANGUAGES as $l): ?><option value="<?= e($l) ?>"><?php endforeach; ?></datalist>
+    </div>
+    <div class="field-hint"><?= icon('info', '', 12) ?> Don't see your language? Type it in and press Enter to add it.</div>
+  </div>
+</section>

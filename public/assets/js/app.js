@@ -303,3 +303,70 @@
   });
   document.addEventListener('click', e => { if (!wrap.contains(e.target)) panel.hidden = true; });
 })();
+
+// onboarding wizard (iERA Connect)
+(() => {
+  const $ = (s, c) => (c || document).querySelector(s), $$ = (s, c) => Array.from((c || document).querySelectorAll(s));
+  const form = $('[data-wizard]');
+  const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+  // conditional fields: data-show-when="field=value", data-show-checked="name=Value|Other"
+  function applyShow(root) {
+    $$('[data-show-when]', root).forEach(el => {
+      const [name, val] = el.getAttribute('data-show-when').split('=');
+      const inp = root.querySelector(`[name="${name}"]:checked`) || root.querySelector(`select[name="${name}"]`);
+      el.hidden = !(inp && inp.value === val);
+    });
+    $$('[data-show-checked]', root).forEach(el => {
+      const [name, vals] = el.getAttribute('data-show-checked').split('=');
+      const wanted = vals.split('|');
+      el.hidden = !$$(`[name="${CSS.escape(name)}"]:checked`, root).some(i => wanted.includes(i.value));
+    });
+  }
+  if (form) {
+    applyShow(form);
+    form.addEventListener('change', () => applyShow(form));
+    // category change reloads the stage so category-specific questions appear
+    $$('[data-reload-on-change]', form).forEach(r => r.addEventListener('change', () => { save().then(() => location.reload()); }));
+    // social media toggle
+    const noSocial = $('[data-no-social]', form);
+    if (noSocial) { const sync = () => $$('[data-social-inputs] input', form).forEach(i => { i.disabled = noSocial.checked; if (noSocial.checked) i.value = ''; }); noSocial.addEventListener('change', sync); }
+    // DOB warning
+    const dob = $('[data-dob]', form);
+    if (dob) { const w = $('[data-dob-warning]', form); const chk = () => { if (!dob.value) { w.hidden = true; return; } const d = new Date(dob.value), t = new Date(); let a = t.getFullYear() - d.getFullYear(); const m = t.getMonth() - d.getMonth(); if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--; w.hidden = a >= 18; }; dob.addEventListener('change', chk); chk(); }
+    // tag input
+    $$('[data-tags]', form).forEach(box => {
+      const name = box.getAttribute('data-tags'), list = $('[data-tag-list]', box), field = $('[data-tag-field]', box);
+      const has = v => $$('input[type=hidden]', list).some(i => i.value.toLowerCase() === v.toLowerCase());
+      const add = v => { v = v.trim(); if (!v || has(v)) return; const t = document.createElement('span'); t.className = 'tag'; t.innerHTML = `<input type="hidden" name="${name}[]"><button type="button" class="tag-x" aria-label="Remove">&times;</button>`; t.insertBefore(document.createTextNode(v), t.firstChild); t.querySelector('input').value = v; list.appendChild(t); field.value = ''; form.dispatchEvent(new Event('change')); };
+      field.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(field.value); } else if (e.key === 'Backspace' && !field.value && list.lastElementChild) { list.lastElementChild.remove(); form.dispatchEvent(new Event('change')); } });
+      field.addEventListener('change', () => { if (field.value) add(field.value); });
+      box.addEventListener('click', e => { if (e.target.classList.contains('tag-x')) { e.target.parentNode.remove(); form.dispatchEvent(new Event('change')); } });
+    });
+    // autosave (1.5 s debounce)
+    let timer = null; const note = $('[data-autosave-text]'), wrap = $('.ob-autosave');
+    function save() {
+      const fd = new FormData(form);
+      return fetch(form.getAttribute('data-autosave'), { method: 'POST', body: fd, headers: { 'X-Requested-With': 'fetch', 'X-CSRF-Token': csrf }, credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(d => { if (d && note) { note.textContent = 'Saved ' + d.saved_at + ' — you can return anytime to continue.'; wrap.classList.add('is-saved'); } }).catch(() => {});
+    }
+    form.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(save, 1500); });
+    form.addEventListener('change', () => { clearTimeout(timer); timer = setTimeout(save, 800); });
+  }
+  // agreement: scroll gate + signature match
+  const ag = $('[data-agreement]');
+  if (ag) {
+    const doc = $('[data-agreement-doc]', ag), status = $('[data-agreement-status]', ag), gate = $('[data-agreement-gate]', ag), f = $('[data-agreement-form]', ag);
+    const sig = $('[data-signature]', f), btn = $('[data-sign-btn]', f), err = $('[data-sig-error]', f), ok = $('[data-sig-ok]', f);
+    const norm = s => s.trim().replace(/\s+/g, ' ').toLowerCase();
+    let read = false;
+    const check = () => { const match = sig.value.trim() !== '' && norm(sig.value) === norm(sig.getAttribute('data-fullname')); err.hidden = !(sig.value.trim() && !match); ok.hidden = !match; btn.disabled = !(match && read && $$('[data-pledge]', f).every(c => c.checked)); };
+    const onScroll = () => { if (!read && doc.scrollTop + doc.clientHeight >= doc.scrollHeight - 20) { read = true; status.classList.add('is-read'); status.textContent = '✓ You have read the full agreement'; gate.hidden = true; f.hidden = false; check(); } };
+    doc.addEventListener('scroll', onScroll); setTimeout(onScroll, 300);
+    sig.addEventListener('input', check); $$('[data-pledge]', f).forEach(c => c.addEventListener('change', check));
+  }
+  // upload slots submit as soon as a file is chosen
+  $$('[data-upload-slot]').forEach(slot => { const inp = $('[data-upload-input]', slot); inp && inp.addEventListener('change', () => { if (inp.files.length) slot.submit(); }); });
+  // choice cards selection class
+  $$('.choice-card input').forEach(i => i.addEventListener('change', () => $$('.choice-card').forEach(c => c.classList.toggle('is-selected', c.querySelector('input').checked))));
+  // stage flash removal
+  const fl = $('[data-ob-flash]'); if (fl) setTimeout(() => fl.remove(), 1700);
+})();

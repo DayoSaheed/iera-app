@@ -160,6 +160,16 @@ final class Auth
         if ($u['type'] === 'superadmin') {
             return '/dashboard';
         }
+        if ($u['type'] === 'volunteer') {
+            // iERA Connect application (volunteer onboarding)
+            $app = \App\Models\Application::forUser($u['id']);
+            if ($app) {
+                return \App\Models\Application::agreementComplete($app) ? '/dashboard' : '/onboarding';
+            }
+            if (empty($u['groups'])) {
+                return !empty($u['position']) ? '/register/volunteer' : '/apply';
+            }
+        }
         if (empty($u['groups'])) {
             return match ($u['type']) { 'newmuslim' => '/register/newmuslim', 'org' => '/register/organization', default => '/register/volunteer' };
         }

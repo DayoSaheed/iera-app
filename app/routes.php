@@ -13,6 +13,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\EventController;
 use App\Controllers\MenteeController;
 use App\Controllers\NotificationController;
+use App\Controllers\OnboardingController;
 use App\Controllers\ProfileController;
 use App\Controllers\RegistrationController;
 use App\Controllers\ReportController;
@@ -68,7 +69,31 @@ $r->post('/pending/training', [RegistrationController::class, 'training'], ['aut
 $r->get('/pending/verify-id', [RegistrationController::class, 'verifyId'], ['auth']);
 
 // ---- dashboards ------------------------------------------------------
-$r->get('/dashboard', [DashboardController::class, 'index'], ['approved']);
+$r->get('/dashboard', [DashboardController::class, 'index'], ['auth']);
+
+// ---- iERA Connect: volunteer application and onboarding -------------------
+$r->get('/apply', [OnboardingController::class, 'apply'], ['auth']);
+$r->post('/apply', [OnboardingController::class, 'applySubmit'], ['auth']);
+$r->get('/onboarding/start', [OnboardingController::class, 'start'], ['auth']);
+$r->get('/onboarding', [OnboardingController::class, 'wizard'], ['auth']);
+$r->post('/onboarding/autosave', [OnboardingController::class, 'autosave'], ['auth']);
+$r->post('/onboarding/sign', [OnboardingController::class, 'sign'], ['auth']);
+$r->post('/onboarding/document', [OnboardingController::class, 'uploadDocument'], ['auth']);
+$r->post('/onboarding/document/remove', [OnboardingController::class, 'removeDocument'], ['auth']);
+$r->post('/onboarding/submit', [OnboardingController::class, 'submit'], ['auth']);
+$r->get('/onboarding/submitted', [OnboardingController::class, 'submitted'], ['auth']);
+$r->post('/onboarding/{stage}', [OnboardingController::class, 'saveStage'], ['auth']);
+$r->get('/book-interview', [OnboardingController::class, 'bookInterview'], ['auth']);
+$r->post('/book-interview', [OnboardingController::class, 'bookInterviewSubmit'], ['auth']);
+$r->post('/book-interview/alternative', [OnboardingController::class, 'requestAlternative'], ['auth']);
+$r->get('/training', [OnboardingController::class, 'training'], ['auth']);
+$r->post('/training/gorap', [OnboardingController::class, 'declareGorap'], ['auth']);
+$r->post('/training/cert/{key}', [OnboardingController::class, 'submitCert'], ['auth']);
+$r->get('/upload-id', [OnboardingController::class, 'uploadId'], ['auth']);
+$r->post('/upload-id', [OnboardingController::class, 'uploadIdSubmit'], ['auth']);
+$r->get('/upload-cv', [OnboardingController::class, 'uploadCv'], ['auth']);
+$r->post('/upload-cv', [OnboardingController::class, 'uploadCvSubmit'], ['auth']);
+$r->post('/online-interest', [OnboardingController::class, 'onlineInterest'], ['auth']);
 $r->get('/newmuslim/home', [DashboardController::class, 'newMuslimHome'], ['approved', 'newmuslim']);
 
 // ---- teams -----------------------------------------------------------

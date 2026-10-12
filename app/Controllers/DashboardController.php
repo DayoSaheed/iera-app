@@ -36,6 +36,13 @@ final class DashboardController extends Controller
         if (Auth::hasGroup($u, 'newmuslim')) {
             return $this->redirect('/newmuslim/home');
         }
+        $application = \App\Models\Application::forUser($u['id']);
+        if ($application) {
+            return $this->volunteerHub($u, $application);
+        }
+        if (!Auth::isOnboarded($u)) {
+            return $this->redirect(Auth::homePath($u));
+        }
         $teamIds = array_values(array_unique(array_merge($u['teams'], $u['admin_teams'])));
         $upcoming = SubEvent::window($teamIds, now(), date('Y-m-d H:i:s', strtotime('+30 days')));
         $attending = SubEvent::attendingIds($u['id'], array_column($upcoming, 'id'));
@@ -54,6 +61,39 @@ final class DashboardController extends Controller
             'showWelcomeBack' => $showWelcomeBack,
             'submittedThisMonth' => $submittedThisMonth,
             'vacations' => VacationRequest::forUser($u['id']),
+        ]);
+    }
+
+    /** iERA Connect volunteer hub: onboarding status, documents, interview and training. */
+    private function volunteerHub(array $u, array $app): Response
+    {
+        if (!\App\Models\Application::agreementComplete($app)) {
+            return $this->redirect('/onboarding');
+        }
+        $teamIds = array_values(array_unique(array_merge($u['teams'], $u['admin_teams'])));
+        $approved = \App\Models\Application::isApproved($app);
+        $docs = [];
+        foreach (\App\Services\Onboarding::DOC_SLOTS as $slot => $col) {
+            $docs[$slot] = $app[$col] ? \App\Models\UserDocument::find($app[$col]) : null;
+        }
+        $checks = [
+            ['Basic info completed', !empty($app['full_name']) && !empty($app['phone']), '/onboarding?stage=1', null],
+            ['Skills added', count($app['skills']) > 0, '/onboarding?stage=3', null],
+            ['Availability set', !empty($app['hours_per_week']), '/onboarding?stage=3', null],
+            ['Volunteer agreement accepted', !empty($app['agreed_to_terms']), '/onboarding?stage=4', null],
+            ['Upload 2 ID documents', $app['id_verification_status'] === 'approved', '/upload-id', $app['id_verification_status'] === 'pending' ? 'under review' : null],
+            ['Upload your CV', !empty($app['cv_doc_id']), '/upload-cv', null],
+            ['GORAP Dawah Training completed', \App\Models\Application::gorapDone($app), '/training', null],
+            ['Onboarding interview', !empty($app['call_scheduled']) || $app['interview_status'] === 'completed', \App\Models\Application::isUk($app) ? '/book-interview' : null, \App\Models\Application::isUk($app) ? 'book now' : 'to be scheduled'],
+        ];
+        $done = count(array_filter($checks, fn($c) => $c[1]));
+        return $this->view('dashboard/hub', [
+            'u' => $u, 'app' => $app, 'approved' => $approved, 'docs' => $docs, 'checks' => $checks,
+            'pct' => (int) round($done / count($checks) * 100),
+            'booked' => \App\Services\Onboarding::bookedSlot($app),
+            'upcoming' => $approved && $teamIds ? array_slice(SubEvent::window($teamIds, now(), date('Y-m-d H:i:s', strtotime('+30 days'))), 0, 6) : [],
+            'pendingReports' => $approved ? Report::list(['status' => 'pending', 'assignee' => $u['id']]) : [],
+            'teams' => $teamIds ? Team::byIds($teamIds) : [],
         ]);
     }
 

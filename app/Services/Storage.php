@@ -13,12 +13,14 @@ final class Storage
         'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp',
         'image/heic' => 'heic', 'application/pdf' => 'pdf',
     ];
+    public const DOCS = ['application/msword' => 'doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx'];
 
     /**
      * Store an uploaded file (entry from $_FILES). Returns [filename, mime, size, relativePath] or throws.
      */
-    public static function storeUpload(array $file, string $folder): array
+    public static function storeUpload(array $file, string $folder, bool $allowDocs = false): array
     {
+        $allowed = $allowDocs ? self::ALLOWED + self::DOCS : self::ALLOWED;
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             throw new \RuntimeException('Upload failed (error ' . ($file['error'] ?? '?') . ').');
         }
@@ -27,15 +29,15 @@ final class Storage
         }
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $mime = (string) $finfo->file($file['tmp_name']);
-        if (!isset(self::ALLOWED[$mime])) {
-            throw new \RuntimeException('Only images (JPG, PNG, GIF, WEBP, HEIC) and PDF files are allowed.');
+        if (!isset($allowed[$mime])) {
+            throw new \RuntimeException($allowDocs ? 'Only PDF, DOC, DOCX or image files are allowed.' : 'Only images (JPG, PNG, GIF, WEBP, HEIC) and PDF files are allowed.');
         }
         $folder = trim(preg_replace('#[^a-zA-Z0-9/_-]#', '', $folder) ?? '', '/');
         $dir = STORAGE_PATH . '/uploads/' . $folder;
         if (!is_dir($dir) && !mkdir($dir, 0750, true) && !is_dir($dir)) {
             throw new \RuntimeException('Cannot create upload folder.');
         }
-        $name = Str::uuid() . '.' . self::ALLOWED[$mime];
+        $name = Str::uuid() . '.' . $allowed[$mime];
         $rel = $folder . '/' . $name;
         if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $name)) {
             // Not an HTTP upload (tests) - fall back to rename

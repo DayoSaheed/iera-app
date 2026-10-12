@@ -74,6 +74,9 @@ final class Health
             $add('error', 'Storage folders are not writable', 'Uploads, logs and branding images cannot be saved. Give storage/ and public/uploads/ write permission (755 or 775) in cPanel File Manager.', '/system', 'See health checks');
         }
 
+        if ((string) Setting::get('connect_onboarding_admin_email') === '' && !Setting::emails('admin_notification_emails')) {
+            $add('warning', 'No one receives volunteer onboarding alerts', 'Set the onboarding admin email (ID uploads, submitted applications, interviews) or the admin notification emails.', '/system/settings#Onboarding', 'Set onboarding admin');
+        }
         // Content and organisation setup
         if ((string) Setting::get('support_email') === 'admin@example.org' || (string) Setting::get('support_email') === '') {
             $add('info', 'Support email still has the example value', 'It is shown in the footer and used as the reply-to address.', '/system/settings#General', 'Edit general settings');

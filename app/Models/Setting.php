@@ -68,6 +68,23 @@ final class Setting
             'sp_street_dawah_list_id' => ['Street Dawah list: list ID', '', 'text', 'SharePoint', ''],
             'sp_nm_tracker_site_id' => ['New Muslim tracker: site ID', '', 'text', 'SharePoint', ''],
             'sp_nm_tracker_list_id' => ['New Muslim tracker: list ID', '', 'text', 'SharePoint', ''],
+            // ---- Volunteer onboarding (iERA Connect) ----
+            'connect_onboarding_admin_email' => ['Onboarding admin email', '', 'email', 'Onboarding', 'Receives ID upload, onboarding complete, interview and risk assessment alerts. Leave blank to use the admin notification emails.'],
+            'connect_onboarding_admin_name' => ['Onboarding admin name', 'the volunteer onboarding team', 'text', 'Onboarding', 'Shown to applicants as the contact for training questions.'],
+            'connect_onboarding_admin_whatsapp' => ['Onboarding admin WhatsApp', '', 'text', 'Onboarding', 'Optional, shown in interview emails.'],
+            'connect_interviewer_name' => ['Interview scheduler name', 'the interview team', 'text', 'Onboarding', 'Named in interview booking emails.'],
+            'connect_interviewer_email' => ['Interview scheduler email', '', 'email', 'Onboarding', 'Receives interview bookings and reschedule requests. Leave blank to use the onboarding admin.'],
+            'connect_ra_email' => ['Risk assessment processor email', '', 'email', 'Onboarding', 'Receives UK risk assessment qualification alerts and reminders, together with the onboarding admin.'],
+            'connect_online_manager_name' => ['Online volunteering manager name', 'the Online volunteering team', 'text', 'Onboarding', 'Shown to Online applicants in the Action Centre.'],
+            'connect_online_manager_email' => ['Online volunteering manager email', '', 'email', 'Onboarding', 'Receives Online Dawah interest registrations.'],
+            'connect_online_verifier_emails' => ['Online workspace allow-list', '', 'textarea', 'Onboarding', 'One email per line. These admins may use the Online volunteering workspace and verify requirements.'],
+            'connect_dawah_course_url' => ['GORAP Dawah course URL', 'https://training.iera.org/courses/iera-dawah-training-course/', 'text', 'Onboarding', 'External training course for Street Dawah and Exhibitions volunteers.'],
+            'connect_nmm_course_url' => ['New Muslim Mentor course URL', 'https://global.iera.org/training/new-muslim-mentor', 'text', 'Onboarding', ''],
+            'connect_pdm_pdf_url' => ['PDM preparation PDF URL', '', 'text', 'Onboarding', 'Online volunteers: shorter preparation pathway document.'],
+            'connect_pdm_form_url' => ['PDM assessment form URL', '', 'text', 'Onboarding', 'Online volunteers: Google Form assessment.'],
+            'connect_training_base_url' => ['Role training base URL', 'https://global.iera.org/training/', 'text', 'Onboarding', 'Role courses live under this address (street-dawah, online-dawah, admin-volunteer, ...).'],
+            'connect_interview_duration' => ['Default interview slot (minutes)', '30', 'number', 'Onboarding', ''],
+            'connect_review_days' => ['Review time shown to applicants', '5–10 business days', 'text', 'Onboarding', 'Used in the application received email and the activation page.'],
             // ---- Scheduler ----
             'cron_secret' => ['Scheduler web key', '', 'secret', 'System', 'Lets an external monitor trigger the jobs: GET /cron/run?key=... every 5 minutes. Jobs can also be run from the Scheduled jobs page.'],
         ];

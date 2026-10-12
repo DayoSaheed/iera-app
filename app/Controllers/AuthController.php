@@ -36,9 +36,9 @@ final class AuthController extends Controller
 
     /** Registration categories offered on the first step. key => [label, description, icon, type, position] */
     public const CATEGORIES = [
-        'daee' => ['Street Dawah Da\'ee', 'Join a team and share Islam at public events and dawah tables.', 'megaphone', 'volunteer', 'street_dawah'],
-        'mentor' => ['New Muslim Mentor', 'Guide a new Muslim through the handbook with weekly check-ins.', 'heart-handshake', 'volunteer', 'new_muslim_mentor'],
-        'volunteer' => ['Other Volunteer Roles', 'IT, media, education, logistics, admin, fundraising and more.', 'briefcase', 'volunteer', ''],
+        'global' => ['Volunteer (Global)', 'Field outreach and in-person events: community events, interfaith dialogue, new Muslim support, street dawah.', 'globe', 'volunteer', 'Global'],
+        'uk' => ['Volunteer (UK)', 'Campus and national activities: administration, call centre, events, exhibitions, fundraising, street dawah.', 'flag', 'volunteer', 'UK'],
+        'online' => ['Volunteer (Online)', 'Digital dawah from anywhere: chat agent, new Muslim mentor, admin support.', 'message-square', 'volunteer', 'Online'],
         'newmuslim' => ['New Muslim', 'Get connected with a mentor and free learning resources.', 'landmark', 'newmuslim', 'newmuslim'],
         'org' => ['Organization / Masjid', 'Partner with us and refer new Muslims for mentoring.', 'users', 'org', ''],
     ];
@@ -94,7 +94,8 @@ final class AuthController extends Controller
     private function applyCategory(string $cat): Response
     {
         [, , , $type, $position] = self::CATEGORIES[$cat];
-        $this->setState(['category' => $cat, 'type' => $type, 'position' => $position]);
+        // Volunteer categories carry the iERA Connect application category; the legacy "position" stays empty.
+        $this->setState(['category' => $cat, 'type' => $type, 'position' => $type === 'volunteer' ? '' : $position, 'connect_category' => $type === 'volunteer' ? $position : '']);
         return $this->redirect('/login/email');
     }
 
@@ -148,6 +149,9 @@ final class AuthController extends Controller
             // New account: created with the chosen type, not onboarded yet. The preferred role is kept for the form.
             $id = User::create(['email' => $email, 'type' => $state['type'], 'status' => 'new', 'position' => $state['position'] ?: null]);
             AuditLog::log('user.self_created', 'user', $id, ['type' => $state['type'], 'category' => $state['category'] ?? null], $id);
+            if (!empty($state['connect_category'])) {
+                Session::set('apply_category', $state['connect_category']);
+            }
             $user = User::find($id);
         }
         $state['email'] = $email;
