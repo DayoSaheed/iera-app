@@ -314,6 +314,7 @@ CREATE TABLE IF NOT EXISTS email_log (
   subject VARCHAR(255) NOT NULL,
   template_key VARCHAR(60) NULL,
   status VARCHAR(20) NOT NULL,
+  driver VARCHAR(20) NULL,
   error TEXT NULL,
   created_at DATETIME NOT NULL,
   PRIMARY KEY (id),
@@ -367,6 +368,6 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
   PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES ('0001_initial', UTC_TIMESTAMP());
+INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES ('0001_initial', UTC_TIMESTAMP()), ('0002_email_log_driver', UTC_TIMESTAMP());
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -27,6 +27,7 @@ final class Mailer
             return false;
         }
         $message['to'] = $to;
+        $message['driver'] = $driver;
         $message['cc'] = self::normalize($message['cc'] ?? []);
         $message['bcc'] = self::normalize($message['bcc'] ?? []);
         $message['subject'] ??= '';

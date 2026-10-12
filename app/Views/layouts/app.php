@@ -14,8 +14,10 @@ $impersonator = $_SESSION['impersonator'] ?? null;
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle) ?> · <?= e(Config::get('app.name')) ?></title>
 <meta name="csrf-token" content="<?= e(\App\Core\Csrf::token()) ?>">
-<link rel="icon" href="<?= e(url('/assets/img/logo.svg')) ?>" type="image/svg+xml">
+<link rel="icon" href="<?= e(\App\Models\Setting::logoUrl()) ?>">
 <link rel="stylesheet" href="<?= e(url('/assets/css/app.css?v=' . APP_VERSION)) ?>">
+<?php $__b = \App\Models\Setting::brand(); ?>
+<style>:root{--primary:<?= e($__b['primary']) ?>;--primary-600:<?= e($__b['primary_600']) ?>;--primary-50:<?= e($__b['primary_50']) ?>;--accent:<?= e($__b['accent']) ?>;--accent-50:<?= e($__b['accent_50']) ?>;--sidebar:<?= e($__b['dark']) ?>;}</style>
 </head>
 <body class="app">
 <a class="skip" href="#main">Skip to content</a>

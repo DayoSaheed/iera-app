@@ -14,7 +14,7 @@ foreach ($files as $file) {
     if (in_array($version, $applied, true)) { continue; }
     echo "Applying $version...\n";
     $sql = file_get_contents($file);
-    if (DB::driver() === 'sqlite') { $sql = \App\Services\SchemaPort::toSqlite($sql); }
+    if (DB::driver() === 'sqlite') { $sql = preg_replace('/\s+AFTER\s+\w+/i', '', \App\Services\SchemaPort::toSqlite($sql)); }
     foreach (array_filter(array_map('trim', explode(";\n", preg_replace('/^--.*$/m', '', $sql)))) as $stmt) { if ($stmt !== '' && !str_starts_with($stmt, '--')) { DB::pdo()->exec($stmt); } }
     DB::insert('schema_migrations', ['version' => $version, 'applied_at' => now()]);
     $n++;

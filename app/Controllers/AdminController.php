@@ -30,7 +30,7 @@ use App\Services\Storage;
  */
 final class AdminController extends Controller
 {
-    public const LISTS = ['volunteer' => 'Volunteers', 'newmuslim' => 'New Muslims', 'org' => 'Organizations', 'pending' => 'Pending Registrations'];
+    public const LISTS = ['volunteer' => 'Volunteers', 'newmuslim' => 'New Muslims', 'org' => 'Organizations', 'pending' => 'Pending Registrations', 'all' => 'All Users'];
 
     private function listRows(array $u, string $type): array
     {
@@ -38,6 +38,7 @@ final class AdminController extends Controller
             return User::list(['type' => 'newmuslim', 'created_by' => $u['id']]);
         }
         return match ($type) {
+            'all' => User::list([]),
             'pending' => User::list(['no_groups' => true, 'exclude_type' => 'superadmin']),
             'org' => User::list(['type' => 'org']),
             'newmuslim' => User::list(['type' => 'newmuslim', 'group' => 'newmuslim']),
@@ -80,6 +81,9 @@ final class AdminController extends Controller
         $assigned = $type === 'newmuslim' ? MentorAssignment::mapForMentees(array_column($rows, 'id')) : [];
         $referrers = User::names(array_column($rows, 'created_by'));
         $headers = ['created_at' => 'Created', 'updated_at' => 'Updated', 'first_name' => 'First name', 'last_name' => 'Last name', 'email' => 'Email', 'status' => 'Status', 'gender' => 'Gender', 'phone' => 'Phone', 'birth_year' => 'Birth year', 'postal_code' => 'Postal code', 'city' => 'City'];
+        if ($type === 'all') {
+            $headers = ['type' => 'Type'] + $headers + ['teams' => 'Teams', 'last_login_at' => 'Last sign-in', 'is_sysadmin' => 'System admin'];
+        }
         if ($type === 'volunteer') {
             $headers += ['pin' => 'PIN', 'stripe_status' => 'ID verification', 'sub_groups' => 'Roles', 'teams' => 'Teams', 'admin_teams' => 'Leads', 'position' => 'Position', 'last_login_at' => 'Last login'];
         } elseif ($type === 'newmuslim') {

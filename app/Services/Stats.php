@@ -183,6 +183,63 @@ final class Stats
         return $series;
     }
 
+    /** Users grouped by Canadian province (from the province column or the "City, PR" suffix). */
+    public static function byProvince(): array
+    {
+        $names = ['AB' => 'Alberta', 'BC' => 'British Columbia', 'MB' => 'Manitoba', 'NB' => 'New Brunswick', 'NL' => 'Newfoundland and Labrador', 'NS' => 'Nova Scotia', 'NT' => 'Northwest Territories', 'NU' => 'Nunavut', 'ON' => 'Ontario', 'PE' => 'Prince Edward Island', 'QC' => 'Quebec', 'SK' => 'Saskatchewan', 'YT' => 'Yukon'];
+        $rows = DB::fetchAll("SELECT type, status, city, province FROM users WHERE type IN ('volunteer', 'newmuslim') AND status NOT IN ('removed', 'rejected', 'new')");
+        $out = [];
+        foreach ($rows as $r) {
+            $code = strtoupper(trim((string) $r['province']));
+            if (!isset($names[$code])) {
+                $code = '';
+                if (preg_match('/,\s*([A-Za-z]{2})\s*$/', (string) $r['city'], $m) && isset($names[strtoupper($m[1])])) {
+                    $code = strtoupper($m[1]);
+                } else {
+                    foreach ($names as $c => $n) {
+                        if ($r['province'] && strcasecmp($n, (string) $r['province']) === 0) {
+                            $code = $c;
+                        }
+                    }
+                }
+            }
+            $key = $code ?: 'XX';
+            $out[$key] ??= ['code' => $key, 'name' => $names[$key] ?? 'Unknown / outside Canada', 'volunteers' => 0, 'volunteers_active' => 0, 'newmuslims' => 0, 'newmuslims_active' => 0];
+            if ($r['type'] === 'volunteer') {
+                $out[$key]['volunteers']++;
+                if ($r['status'] === 'approved') { $out[$key]['volunteers_active']++; }
+            } else {
+                $out[$key]['newmuslims']++;
+                if (in_array($r['status'], ['approved', 'completed'], true)) { $out[$key]['newmuslims_active']++; }
+            }
+        }
+        uasort($out, fn($a, $b) => ($b['volunteers'] + $b['newmuslims']) <=> ($a['volunteers'] + $a['newmuslims']));
+        return array_values($out);
+    }
+
+    /** One card per team for the superadmin home. */
+    public static function teamCards(): array
+    {
+        $from = date('Y-01-01 00:00:00');
+        $to = date('Y-m-d H:i:s', strtotime('+1 year'));
+        $cards = [];
+        foreach (Team::withCounts(Team::all(null, 'approved')) as $t) {
+            $ids = [$t['id']];
+            $stats = self::eventStats($ids, $from, $to);
+            $er = self::reportCounts('event_report', $ids, $from, $to);
+            $mr = self::reportCounts('mentor', $ids, $from, $to);
+            $cards[] = [
+                'id' => $t['id'], 'name' => $t['name'], 'parent' => $t['parent_team'],
+                'members' => (int) $t['members_count'], 'leads' => (int) $t['admins_count'], 'upcoming' => (int) $t['active_events'],
+                'volunteers_active' => self::usersByStatus('volunteer', $ids)['approved'] ?? 0,
+                'newmuslims' => self::newMuslimsByStatus($ids)['approved'] ?? 0,
+                'shahada' => (int) $stats['shahada'], 'chats' => (int) $stats['chats'],
+                'reports_submitted' => $er['submitted'] + $mr['submitted'], 'reports_pending' => $er['pending'] + $mr['pending'],
+            ];
+        }
+        return $cards;
+    }
+
     /** Da'ee activity: attendance and hours per approved da'ee in a date range. */
     public static function daeeActivity(string $from, string $to, ?array $teamIds): array
     {

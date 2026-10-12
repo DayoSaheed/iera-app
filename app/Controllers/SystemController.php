@@ -85,6 +85,22 @@ final class SystemController extends Controller
                 } elseif ($v !== '') {
                     Setting::set($key, $v);
                 }
+            } elseif ($type === 'color') {
+                $v = trim((string) $req->post($key));
+                if (preg_match('/^#[0-9a-fA-F]{6}$/', $v)) {
+                    Setting::set($key, strtolower($v));
+                }
+            } elseif ($type === 'image') {
+                if ($req->post($key . '_clear') === '1') {
+                    self::deleteBrandFile((string) Setting::get($key));
+                    Setting::set($key, '');
+                } elseif ($file = $req->file($key)) {
+                    try {
+                        Setting::set($key, self::storeBrandFile($key, $file));
+                    } catch (\RuntimeException $e) {
+                        Flash::error($label . ': ' . $e->getMessage());
+                    }
+                }
             } elseif (str_starts_with($type, 'select:')) {
                 $allowed = explode('|', substr($type, 7));
                 $v = (string) $req->post($key);
@@ -100,14 +116,59 @@ final class SystemController extends Controller
         return $this->redirect('/system/settings' . ($req->str('tab') ? '#' . $req->str('tab') : ''));
     }
 
+    /** Store a branding image under public/uploads/branding and return its web path. */
+    private static function storeBrandFile(string $key, array $file): string
+    {
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException('upload failed (error ' . $file['error'] . ')');
+        }
+        $max = $key === 'login_background' ? 4 * 1024 * 1024 : 2 * 1024 * 1024;
+        if ((int) $file['size'] > $max) {
+            throw new \RuntimeException('file is larger than ' . ($max / 1024 / 1024) . ' MB');
+        }
+        $mime = (string) (new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+        $ext = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp', 'image/svg+xml' => 'svg', 'image/gif' => 'gif'][$mime] ?? null;
+        if (!$ext || ($key === 'login_background' && $ext === 'svg')) {
+            throw new \RuntimeException('unsupported image type (' . $mime . ')');
+        }
+        if ($ext === 'svg' && preg_match('/<script|on[a-z]+\s*=|javascript:/i', (string) file_get_contents($file['tmp_name']))) {
+            throw new \RuntimeException('SVG files with scripts are not allowed');
+        }
+        $dir = BASE_PATH . '/public/uploads/branding';
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new \RuntimeException('cannot create public/uploads/branding');
+        }
+        self::deleteBrandFile((string) Setting::get($key));
+        $name = $key . '-' . substr(bin2hex(random_bytes(4)), 0, 8) . '.' . $ext;
+        if (!move_uploaded_file($file['tmp_name'], "$dir/$name") && !@rename($file['tmp_name'], "$dir/$name") && !@copy($file['tmp_name'], "$dir/$name")) {
+            throw new \RuntimeException('cannot save the file');
+        }
+        return '/uploads/branding/' . $name;
+    }
+
+    private static function deleteBrandFile(string $webPath): void
+    {
+        if ($webPath !== '' && str_starts_with($webPath, '/uploads/branding/')) {
+            $abs = BASE_PATH . '/public' . $webPath;
+            if (is_file($abs)) {
+                @unlink($abs);
+            }
+        }
+    }
+
     /** Send a test email with the current delivery settings. */
     public function testMail(Request $req): Response
     {
         $u = $this->user();
         $to = $req->str('to') ?: $u['email'];
-        $ok = EmailService::send('admin_notice', [$to], ['subject' => 'Test email from ' . Config::get('app.name'), 'body' => 'If you can read this, email delivery is working. Sent ' . now() . ' using the "' . Setting::mail()['driver'] . '" method.']);
+        $driver = Setting::mail()['driver'];
+        $ok = EmailService::send('admin_notice', [$to], ['subject' => 'Test email from ' . Config::get('app.name'), 'body' => 'If you can read this, email delivery is working. Sent ' . now() . ' using the "' . $driver . '" method.']);
         $last = \App\Core\DB::fetch('SELECT * FROM email_log ORDER BY id DESC LIMIT 1');
-        Flash::add($ok ? 'success' : 'error', $ok ? "Test email sent to $to." : 'Sending failed: ' . ($last['error'] ?? 'see the email log'));
+        if ($ok && $driver === 'log') {
+            Flash::warning('The delivery method is "log": the message was only written to storage/logs/mail.log and NOT sent to ' . $to . '. Choose smtp or sendgrid above, save, then test again.');
+        } else {
+            Flash::add($ok ? 'success' : 'error', $ok ? "Test email handed to the $driver server for $to. If it does not arrive within a few minutes, check the spam folder and the sender mailbox settings." : 'Sending failed: ' . ($last['error'] ?? 'see the email log'));
+        }
         return $this->redirect('/system/settings#Email');
     }
 

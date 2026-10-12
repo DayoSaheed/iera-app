@@ -15,6 +15,7 @@ final class EmailLog
                 'subject' => substr((string) ($message['subject'] ?: ('[template ' . ($message['template_id'] ?? '') . ']')), 0, 255),
                 'template_key' => $message['template_key'] ?? null,
                 'status' => $status,
+                'driver' => $message['driver'] ?? null,
                 'error' => $error,
                 'created_at' => now(),
             ]);

@@ -144,7 +144,7 @@ final class Auth
     public static function homePath(array $u): string
     {
         if ($u['type'] === 'superadmin') {
-            return '/admin/users?type=volunteer';
+            return '/dashboard';
         }
         if ($u['type'] === 'org') {
             return '/admin/users?type=newmuslim';

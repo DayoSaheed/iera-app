@@ -10,7 +10,7 @@ final class SchemaPort
     {
         $sql = preg_replace('/^--.*$/m', '', $sql) ?? $sql;
         $sql = preg_replace('/^SET .*$/m', '', $sql) ?? $sql;
-        $sql = preg_replace('/INSERT IGNORE INTO schema_migrations.*$/m', "INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES ('0001_initial', datetime('now'))", $sql) ?? $sql;
+        $sql = preg_replace_callback('/INSERT IGNORE INTO schema_migrations \(version, applied_at\) VALUES (.*);$/m', fn($m) => 'INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES ' . str_replace('UTC_TIMESTAMP()', "datetime('now')", $m[1]) . ';', $sql) ?? $sql;
         $sql = preg_replace('/\) ENGINE=InnoDB[^;]*;/', ');', $sql) ?? $sql;
         $sql = preg_replace('/INT NOT NULL AUTO_INCREMENT/', 'INTEGER PRIMARY KEY AUTOINCREMENT', $sql) ?? $sql;
         // Remove the separate PRIMARY KEY (id) line for autoincrement tables

@@ -12,6 +12,7 @@ use App\Models\Report;
 use App\Models\Setting;
 use App\Models\SubEvent;
 use App\Models\Team;
+use App\Models\User;
 use App\Models\VacationRequest;
 
 final class DashboardController extends Controller
@@ -27,7 +28,7 @@ final class DashboardController extends Controller
     {
         $u = $this->user();
         if ($u['type'] === 'superadmin') {
-            return $this->redirect('/analytics');
+            return $this->superadminHome($u);
         }
         if ($u['type'] === 'org') {
             return $this->redirect('/admin/users?type=newmuslim');
@@ -53,6 +54,34 @@ final class DashboardController extends Controller
             'showWelcomeBack' => $showWelcomeBack,
             'submittedThisMonth' => $submittedThisMonth,
             'vacations' => VacationRequest::forUser($u['id']),
+        ]);
+    }
+
+    /** Superadmin home: totals, Canada by province, one card per team. */
+    private function superadminHome(array $u): Response
+    {
+        $year = (int) date('Y');
+        [$from, $to] = \App\Services\Stats::range($year, null);
+        $totals = [
+            'volunteers' => \App\Services\Stats::usersByStatus('volunteer', null),
+            'newmuslims' => \App\Services\Stats::usersByStatus('newmuslim', null),
+            'teams' => count(Team::all(null, 'approved')),
+            'events' => \App\Services\Stats::eventCounts(null, $from, $to),
+            'stats' => \App\Services\Stats::eventStats(null, $from, $to),
+            'event_reports' => \App\Services\Stats::reportCounts('event_report', null, $from, $to),
+            'mentor_reports' => \App\Services\Stats::reportCounts('mentor', null, $from, $to),
+            'pending_registrations' => count(User::list(['no_groups' => true, 'exclude_type' => 'superadmin'], false)),
+            'in_review' => (int) DB::fetchColumn("SELECT COUNT(*) FROM users WHERE type = 'volunteer' AND status IN ('enrolled','id_verified','training_video','in_review')"),
+            'unassigned' => (int) DB::fetchColumn("SELECT COUNT(*) FROM users n WHERE n.type = 'newmuslim' AND n.status IN ('enrolled','approved') AND NOT EXISTS (SELECT 1 FROM mentor_assignments a WHERE a.mentee_id = n.id AND a.rejected_at IS NULL)"),
+        ];
+        return $this->view('dashboard/superadmin', [
+            'u' => $u,
+            'year' => $year,
+            'totals' => $totals,
+            'provinces' => \App\Services\Stats::byProvince(),
+            'teams' => \App\Services\Stats::teamCards(),
+            'recentUsers' => array_slice(User::list(['exclude_type' => 'superadmin', 'order' => 'u.created_at DESC']), 0, 8),
+            'upcoming' => array_slice(SubEvent::window(null, now(), date('Y-m-d H:i:s', strtotime('+14 days'))), 0, 8),
         ]);
     }
 

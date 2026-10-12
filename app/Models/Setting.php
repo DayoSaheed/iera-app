@@ -14,6 +14,13 @@ final class Setting
     public static function definitions(): array
     {
         return [
+            // ---- Appearance ----
+            'brand_primary' => ['Primary colour', '#d4006a', 'color', 'Appearance', 'Buttons, links and highlights (magenta).'],
+            'brand_accent' => ['Accent colour', '#f6c400', 'color', 'Appearance', 'Secondary highlights and calls to action (yellow).'],
+            'brand_dark' => ['Sidebar colour', '#0b0b0f', 'color', 'Appearance', 'Sidebar and dark surfaces (black).'],
+            'brand_logo' => ['Logo', '', 'image', 'Appearance', 'PNG or SVG, shown in the sidebar and on the sign-in page. Square or wide, max 2 MB.'],
+            'login_background' => ['Sign-in / registration background image', '', 'image', 'Appearance', 'JPG or PNG, at least 1600px wide, max 4 MB. A dark overlay keeps the text readable.'],
+            'login_tagline' => ['Sign-in page tagline', 'Connecting humanity with God, one conversation at a time.', 'text', 'Appearance', 'Short line shown under the logo on the sign-in page.'],
             'org_name' => ['Organisation name', 'iERA Canada', 'text', 'General', ''],
             'support_email' => ['Support / contact email', 'admin@example.org', 'email', 'General', 'Shown in the footer and used as reply-to.'],
             'admin_notification_emails' => ['Admin notification emails', 'admin@example.org', 'textarea', 'Notifications', 'One address per line. Receives new volunteer / new Muslim registration alerts and system notices.'],
@@ -103,6 +110,43 @@ final class Setting
         }
         $c = \App\Core\Config::get($configKey);
         return $c !== null && $c !== '' ? $c : $default;
+    }
+
+    /** Brand colours with derived shades for CSS variables. */
+    public static function brand(): array
+    {
+        $primary = self::hex((string) self::get('brand_primary'), '#d4006a');
+        $accent = self::hex((string) self::get('brand_accent'), '#f6c400');
+        $dark = self::hex((string) self::get('brand_dark'), '#0b0b0f');
+        return [
+            'primary' => $primary, 'primary_600' => self::shade($primary, -0.15), 'primary_50' => self::tint($primary, 0.9),
+            'accent' => $accent, 'accent_50' => self::tint($accent, 0.84), 'dark' => $dark,
+        ];
+    }
+
+    public static function logoUrl(): string
+    {
+        $logo = (string) self::get('brand_logo', '');
+        return $logo !== '' ? url($logo) : url('/assets/img/logo.svg');
+    }
+
+    private static function hex(string $v, string $default): string
+    {
+        return preg_match('/^#[0-9a-f]{6}$/i', $v) ? strtolower($v) : $default;
+    }
+
+    private static function shade(string $hex, float $amount): string
+    {
+        [$r, $g, $b] = sscanf($hex, '#%02x%02x%02x');
+        $f = fn(int $c) => max(0, min(255, (int) round($c * (1 + $amount))));
+        return sprintf('#%02x%02x%02x', $f($r), $f($g), $f($b));
+    }
+
+    private static function tint(string $hex, float $amount): string
+    {
+        [$r, $g, $b] = sscanf($hex, '#%02x%02x%02x');
+        $f = fn(int $c) => max(0, min(255, (int) round($c + (255 - $c) * $amount)));
+        return sprintf('#%02x%02x%02x', $f($r), $f($g), $f($b));
     }
 
     /** Resolved mail configuration (settings first, then config.php). */

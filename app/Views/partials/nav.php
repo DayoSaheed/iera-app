@@ -13,13 +13,14 @@ if ($me) {
     $onboarded = Auth::isOnboarded($me);
     if ($onboarded) {
         if ($me['type'] === 'superadmin') {
+            $items[] = ['Dashboard', '/dashboard', 'dashboard', 'layout'];
             $items[] = ['Analytics', '/analytics', 'analytics', 'bar-chart'];
             $items[] = ['Admin Dashboard', '/admin/users?type=volunteer', 'admin', 'wrench'];
             $items[] = ['Teams', '/admin/teams', 'admin-teams', 'users'];
         } elseif ($me['type'] === 'org') {
             $items[] = ['New Muslims', '/admin/users?type=newmuslim', 'admin', 'compass'];
         }
-        if ($vol && $me['type'] !== 'superadmin' || $super) {
+        if ($vol && $me['type'] !== 'superadmin') {
             $items[] = ['Home', '/dashboard', 'dashboard', 'home'];
         }
         if ($vol) {
@@ -62,7 +63,7 @@ $myTeams = $me ? array_map(fn($t) => $teamNames[$t] ?? $t, array_unique(array_me
 ?>
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-brand">
-    <img src="<?= e(url('/assets/img/logo.svg')) ?>" alt="" width="36" height="36">
+    <img src="<?= e(\App\Models\Setting::logoUrl()) ?>" alt="" height="40">
     <div><strong><?= e(\App\Core\Config::get('app.name')) ?></strong><small><?= e(Setting::get('org_name')) ?></small></div>
     <button class="icon-btn sidebar-close" type="button" aria-label="Close menu" data-nav-toggle><?= icon('x') ?></button>
   </div>
