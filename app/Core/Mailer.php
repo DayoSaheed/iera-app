@@ -171,13 +171,25 @@ final class Mailer
     private static function viaSmtp(array $m, array $mailCfg): bool
     {
         $cfg = $mailCfg['smtp'];
-        $host = (string) ($cfg['host'] ?? 'localhost');
-        $port = (int) ($cfg['port'] ?? 587);
+        $host = trim((string) ($cfg['host'] ?? 'localhost')) ?: 'localhost';
+        $port = (int) ($cfg['port'] ?? 587) ?: 587;
         $enc = (string) ($cfg['encryption'] ?? 'tls');
-        $remote = ($enc === 'ssl' ? 'ssl://' : '') . $host . ':' . $port;
-        $sock = @stream_socket_client($remote, $errno, $errstr, 20);
+        $local = in_array(strtolower($host), ['localhost', '127.0.0.1', '::1'], true);
+        $verify = !$local && (bool) ($cfg['verify_cert'] ?? true);
+        $ctx = stream_context_create(['ssl' => [
+            'verify_peer' => $verify, 'verify_peer_name' => $verify, 'allow_self_signed' => !$verify,
+            'SNI_enabled' => true, 'peer_name' => $host,
+        ]]);
+        $remote = ($enc === 'ssl' ? 'ssl://' : 'tcp://') . $host . ':' . $port;
+        $warning = '';
+        set_error_handler(static function (int $no, string $msg) use (&$warning): bool { $warning = $msg; return true; });
+        try {
+            $sock = stream_socket_client($remote, $errno, $errstr, 20, STREAM_CLIENT_CONNECT, $ctx);
+        } finally {
+            restore_error_handler();
+        }
         if (!$sock) {
-            throw new \RuntimeException("SMTP connect failed: $errstr");
+            throw new \RuntimeException(self::explainConnect($host, $port, $enc, $errstr ?: $warning, $warning));
         }
         stream_set_timeout($sock, 20);
         $read = static function () use ($sock): string {
@@ -188,29 +200,61 @@ final class Mailer
                     break;
                 }
             }
+            if ($data === '') {
+                $meta = stream_get_meta_data($sock);
+                throw new \RuntimeException(!empty($meta['timed_out']) ? 'No reply from the mail server within 20 seconds. If you chose encryption "ssl", the port is probably a STARTTLS port (use 587 with "tls"), or the other way round.' : 'The mail server closed the connection.');
+            }
             return $data;
         };
-        $cmd = static function (string $c, array $okCodes) use ($sock, $read): string {
+        $cmd = static function (string $c, array $okCodes, ?string $label = null) use ($sock, $read): string {
             fwrite($sock, $c . "\r\n");
             $r = $read();
             if (!in_array((int) substr($r, 0, 3), $okCodes, true)) {
-                throw new \RuntimeException('SMTP error after ' . explode(' ', $c)[0] . ': ' . trim($r));
+                throw new \RuntimeException('SMTP error after ' . ($label ?? explode(' ', $c)[0]) . ': ' . trim($r));
             }
             return $r;
         };
-        $read();
-        $cmd('EHLO ' . (parse_url((string) Config::get('app.url'), PHP_URL_HOST) ?: 'localhost'), [250]);
+        $greeting = $read();
+        if ((int) substr($greeting, 0, 3) !== 220) {
+            throw new \RuntimeException('Unexpected greeting from the mail server: ' . trim($greeting));
+        }
+        $ehlo = $cmd('EHLO ' . (parse_url((string) Config::get('app.url'), PHP_URL_HOST) ?: 'localhost'), [250]);
         if ($enc === 'tls') {
             $cmd('STARTTLS', [220]);
-            if (!stream_socket_enable_crypto($sock, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
-                throw new \RuntimeException('SMTP STARTTLS failed');
+            $warning = '';
+            set_error_handler(static function (int $no, string $msg) use (&$warning): bool { $warning = $msg; return true; });
+            try {
+                $ok = stream_socket_enable_crypto($sock, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            } finally {
+                restore_error_handler();
             }
-            $cmd('EHLO ' . $host, [250]);
+            if ($ok !== true) {
+                throw new \RuntimeException(self::explainTls($warning));
+            }
+            $ehlo = $cmd('EHLO ' . $host, [250]);
         }
         if (!empty($cfg['user'])) {
-            $cmd('AUTH LOGIN', [334]);
-            $cmd(base64_encode((string) $cfg['user']), [334]);
-            $cmd(base64_encode((string) $cfg['pass']), [235]);
+            $user = (string) $cfg['user'];
+            $pass = (string) $cfg['pass'];
+            $authErr = null;
+            $plain = stripos($ehlo, 'PLAIN') !== false && stripos($ehlo, 'LOGIN') === false;
+            try {
+                if ($plain) {
+                    $cmd('AUTH PLAIN ' . base64_encode("\0$user\0$pass"), [235], 'AUTH PLAIN');
+                } else {
+                    $cmd('AUTH LOGIN', [334]);
+                    $cmd(base64_encode($user), [334], 'username');
+                    $cmd(base64_encode($pass), [235], 'password');
+                }
+            } catch (\RuntimeException $e) {
+                $authErr = $e->getMessage();
+            }
+            if ($authErr !== null) {
+                $hint = str_contains($authErr, '535') || str_contains($authErr, '534') || str_contains($authErr, '530')
+                    ? ' The username or password was rejected: use the full mailbox address (name@yourdomain) as the username and that mailbox password.'
+                    : '';
+                throw new \RuntimeException('SMTP login failed. ' . $authErr . $hint);
+            }
         }
         $from = self::from($mailCfg);
         $cmd('MAIL FROM:<' . $from['email'] . '>', [250]);
@@ -249,6 +293,34 @@ final class Mailer
         fwrite($sock, "QUIT\r\n");
         fclose($sock);
         return true;
+    }
+
+    private static function explainConnect(string $host, int $port, string $enc, string $err, string $warning): string
+    {
+        $base = "Could not connect to $host:$port ($enc). ";
+        $e = strtolower($err . ' ' . $warning);
+        if (str_contains($e, 'certificate') || str_contains($e, 'verify') || str_contains($e, 'ssl operation')) {
+            return $base . 'The server\'s SSL certificate does not match "' . $host . '". Use the host name printed on the certificate (often mail.yourdomain or the server\'s own hostname), or turn off "Verify SMTP certificate" in Settings → Email.';
+        }
+        if (str_contains($e, 'refused')) {
+            return $base . 'Connection refused: nothing is listening on that port. On cPanel use port 465 with "ssl" or 587 with "tls".';
+        }
+        if (str_contains($e, 'timed out') || str_contains($e, 'timeout')) {
+            return $base . 'Timed out: a firewall is blocking the port or the host name is wrong.';
+        }
+        if (str_contains($e, 'getaddrinfo') || str_contains($e, 'resolve') || str_contains($e, 'name or service')) {
+            return $base . 'The host name could not be found. Check the spelling.';
+        }
+        return $base . trim($err ?: $warning) ?: 'Unknown error.';
+    }
+
+    private static function explainTls(string $warning): string
+    {
+        $w = strtolower($warning);
+        if (str_contains($w, 'certificate') || str_contains($w, 'verify')) {
+            return 'STARTTLS failed: the server\'s certificate does not match the SMTP host. Use the host name on the certificate, or turn off "Verify SMTP certificate" in Settings → Email.';
+        }
+        return 'STARTTLS failed: ' . (trim($warning) ?: 'the server did not complete the TLS handshake. Try port 465 with "ssl".');
     }
 
     // ---- log ---------------------------------------------------------

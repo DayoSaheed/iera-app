@@ -55,6 +55,7 @@ final class Setting
             'smtp_encryption' => ['SMTP encryption', 'ssl', 'select:ssl|tls|none', 'Email', ''],
             'smtp_user' => ['SMTP username', '', 'text', 'Email', 'Usually the full mailbox address.'],
             'smtp_pass' => ['SMTP password', '', 'secret', 'Email', 'Stored encrypted. Leave blank to keep the current value.'],
+            'smtp_verify_cert' => ['Verify SMTP certificate', '1', 'bool', 'Email', 'Turn off only if the test email reports a certificate mismatch (shared hosting certificates). Never checked for localhost.'],
             'sendgrid_api_key' => ['SendGrid API key', '', 'secret', 'Email', 'Only for the sendgrid method. Stored encrypted.'],
             // ---- Stripe Identity ----
             'stripe_secret_key' => ['Stripe secret key', '', 'secret', 'Stripe Identity', 'sk_live_... Stored encrypted.'],
@@ -176,6 +177,7 @@ final class Setting
                 'user' => (string) self::orConfig('smtp_user', 'mail.smtp.user', ''),
                 'pass' => (string) self::orConfig('smtp_pass', 'mail.smtp.pass', ''),
                 'encryption' => (string) self::orConfig('smtp_encryption', 'mail.smtp.encryption', 'tls'),
+                'verify_cert' => self::bool('smtp_verify_cert'),
             ],
         ];
     }
