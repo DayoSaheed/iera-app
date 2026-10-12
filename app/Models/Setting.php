@@ -86,6 +86,12 @@ final class Setting
             'connect_training_base_url' => ['Role training base URL', 'https://global.iera.org/training/', 'text', 'Onboarding', 'Role courses live under this address (street-dawah, online-dawah, admin-volunteer, ...).'],
             'connect_interview_duration' => ['Default interview slot (minutes)', '30', 'number', 'Onboarding', ''],
             'connect_review_days' => ['Review time shown to applicants', '5–10 business days', 'text', 'Onboarding', 'Used in the application received email and the activation page.'],
+            // ---- Integrations ----
+            'connect_training_api_url' => ['Training site URL', 'https://training.iera.org', 'text', 'Integrations', 'WordPress site running LearnDash.'],
+            'connect_training_wp_user' => ['Training site WordPress user', '', 'text', 'Integrations', 'Username that owns the application password.'],
+            'connect_training_wp_app_password' => ['Training site application password', '', 'secret', 'Integrations', 'WordPress → Users → Profile → Application Passwords. Needed for the training completions sync.'],
+            'connect_training_course_id' => ['LearnDash course ID', '', 'number', 'Integrations', 'The Dawah Training course whose completions award the badge.'],
+            'connect_story_feed_url' => ['Story feed site', 'https://global.iera.org', 'text', 'Integrations', 'Public WordPress site whose posts are imported into the Story hub.'],
             // ---- Scheduler ----
             'cron_secret' => ['Scheduler web key', '', 'secret', 'System', 'Lets an external monitor trigger the jobs: GET /cron/run?key=... every 5 minutes. Jobs can also be run from the Scheduled jobs page.'],
         ];

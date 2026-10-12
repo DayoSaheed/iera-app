@@ -345,6 +345,7 @@ final class VolunteerAreaController extends Controller
             'is_anonymous' => $anon ? 1 : 0, 'votes_json' => '[]', 'comments_json' => '[]', 'created_at' => now(), 'updated_at' => now(),
         ]);
         Notification::pushMany(array_column(DB::fetchAll("SELECT id FROM users WHERE type = 'superadmin'"), 'id'), 'Issue reported: ' . $title, mb_substr($desc, 0, 120), ['category' => 'admin', 'icon' => 'alert-triangle', 'link' => '/admin/feedback']);
+        try { \App\Services\NotificationRules::fire('issue_reported', ['title' => $title, 'description' => mb_substr($desc, 0, 500), 'full_name' => $anon ? 'Anonymous' : (User::fullName($u) ?: $u['email']), 'email' => $anon ? '' : $u['email'], 'category' => '', 'admin_review_link' => rtrim((string) \App\Core\Config::get('app.url'), '/') . '/admin/feedback'], null, ($anon ? 'Someone' : (User::fullName($u) ?: $u['email'])) . ' reported: ' . $title, 'alert-triangle'); } catch (\Throwable $e) { \App\Core\Logger::warning('Notification rules: ' . $e->getMessage()); }
         Flash::success('Feedback sent! Thank you for helping us improve.');
         return $this->back($req, '/my-feedback');
     }

@@ -42,7 +42,8 @@ final class Gamification
         $reports = self::reports($userId);
         $completions = (int) DB::fetchColumn('SELECT COUNT(*) FROM training_completions WHERE user_id = ?', [$userId]);
         $modules = (int) DB::fetchColumn('SELECT COUNT(*) FROM training_modules WHERE is_active = 1');
-        return self::compute($reports, $completions, $modules, $app);
+        $awardXp = (int) DB::fetchColumn('SELECT COALESCE(SUM(xp_awarded),0) FROM training_awards WHERE user_id = ?', [$userId]);
+        return self::compute($reports, $completions, $modules, $app, $awardXp);
     }
 
     public static function reports(string $userId, int $limit = 500): array
@@ -50,10 +51,10 @@ final class Gamification
         return DB::fetchAll("SELECT * FROM volunteer_reports WHERE user_id = ? ORDER BY report_date DESC, id DESC LIMIT $limit", [$userId]);
     }
 
-    public static function compute(array $reports, int $completions, int $modules, ?array $app): array
+    public static function compute(array $reports, int $completions, int $modules, ?array $app, int $awardXp = 0): array
     {
         $photos = count(array_filter($reports, fn($r) => !empty($r['photo_doc_id'])));
-        $xp = ($app ? self::XP['application'] : 0) + $completions * self::XP['training_module'] + count($reports) * self::XP['report'] + $photos * self::XP['photo'];
+        $xp = ($app ? self::XP['application'] : 0) + $completions * self::XP['training_module'] + count($reports) * self::XP['report'] + $photos * self::XP['photo'] + $awardXp;
         $hours = array_sum(array_map(fn($r) => (float) $r['hours'], $reports));
         $streak = self::streak($reports);
         $level = self::level($xp);
@@ -163,10 +164,14 @@ final class Gamification
         foreach (DB::fetchAll("SELECT user_id, COUNT(*) c FROM training_completions WHERE user_id IN $in GROUP BY user_id", $p) as $r) {
             $comp[$r['user_id']] = (int) $r['c'];
         }
+        $awards = [];
+        foreach (DB::fetchAll("SELECT user_id, SUM(xp_awarded) x FROM training_awards WHERE user_id IN $in GROUP BY user_id", $p) as $r) {
+            $awards[$r['user_id']] = (int) $r['x'];
+        }
         $modules = (int) DB::fetchColumn('SELECT COUNT(*) FROM training_modules WHERE is_active = 1');
         $out = [];
         foreach ($apps as $a) {
-            $out[] = ['app' => $a] + self::compute($byUser[$a['user_id']] ?? [], $comp[$a['user_id']] ?? 0, $modules, $a);
+            $out[] = ['app' => $a] + self::compute($byUser[$a['user_id']] ?? [], $comp[$a['user_id']] ?? 0, $modules, $a, $awards[$a['user_id']] ?? 0);
         }
         return $out;
     }

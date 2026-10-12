@@ -97,6 +97,20 @@ if ($me) {
             ]];
             $items[] = ['Hierarchy', '/admin/hierarchy', 'cc-hierarchy', 'globe', 'People'];
             $items[] = ['Participation log', '/admin/participation-log', 'cc-participation', 'list', 'People'];
+            $items[] = ['Community', null, 'cc-community', 'heart', 'People', [
+                ['Badges & XP', '/admin/gamification', 'cc-gamification'],
+                ['Community feed', '/admin/feed', 'cc-feed'],
+                ['Moderation', '/admin/moderation', 'cc-moderation'],
+                ['Groups', '/admin/groups', 'cc-groups'],
+                ['Stories', '/admin/stories', 'cc-stories'],
+            ]];
+            $items[] = ['Operations', null, 'cc-ops', 'send', 'People', [
+                ['Communications', '/admin/communications', 'cc-comms'],
+                ['Issue tracker', '/admin/feedback', 'cc-feedback'],
+                ['Notification rules', '/admin/notifications', 'cc-notifications'],
+                ['Reporting', '/admin/reporting', 'cc-reporting'],
+                ['Training sync', '/admin/training-sync', 'cc-training'],
+            ]];
         }
         if ($super) {
             $items[] = ['People', null, 'admin', 'users', 'People', [

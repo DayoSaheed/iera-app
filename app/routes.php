@@ -16,6 +16,7 @@ use App\Controllers\NotificationController;
 use App\Controllers\OnboardingController;
 use App\Controllers\VolunteerAreaController;
 use App\Controllers\ConnectAdminController;
+use App\Controllers\ConnectOpsController;
 use App\Controllers\ProfileController;
 use App\Controllers\RegistrationController;
 use App\Controllers\ReportController;
@@ -142,6 +143,31 @@ $r->post('/admin/hierarchy/regions', [ConnectAdminController::class, 'saveRegion
 $r->post('/admin/hierarchy/assignments', [ConnectAdminController::class, 'saveAssignment'], ['admin']);
 $r->get('/admin/participation-log', [ConnectAdminController::class, 'participation'], ['admin']);
 $r->post('/admin/participation-log', [ConnectAdminController::class, 'participationSave'], ['admin']);
+// Admin operations: badges, community, stories, communications, issues, notification rules, reporting, training
+$r->get('/admin/gamification', [ConnectOpsController::class, 'gamification'], ['admin']);
+$r->post('/admin/gamification/award', [ConnectOpsController::class, 'awardBadge'], ['admin']);
+$r->post('/admin/gamification/awards/{id}/delete', [ConnectOpsController::class, 'deleteAward'], ['admin']);
+$r->get('/admin/feed', [ConnectOpsController::class, 'feed'], ['admin']);
+$r->get('/admin/moderation', [ConnectOpsController::class, 'moderation'], ['admin']);
+$r->post('/admin/feed/action', [ConnectOpsController::class, 'feedAction'], ['admin']);
+$r->get('/admin/groups', [ConnectOpsController::class, 'groups'], ['admin']);
+$r->post('/admin/groups/remove', [ConnectOpsController::class, 'removeMember'], ['admin']);
+$r->get('/admin/stories', [ConnectOpsController::class, 'stories'], ['admin']);
+$r->post('/admin/stories/sync', [ConnectOpsController::class, 'storySync'], ['admin']);
+$r->post('/admin/stories/action', [ConnectOpsController::class, 'storyAction'], ['admin']);
+$r->get('/admin/communications', [ConnectOpsController::class, 'communications'], ['admin']);
+$r->post('/admin/communications/templates', [ConnectOpsController::class, 'saveTemplate'], ['admin']);
+$r->post('/admin/communications/send', [ConnectOpsController::class, 'createSend'], ['admin']);
+$r->post('/admin/communications/sends/{id}', [ConnectOpsController::class, 'sendAction'], ['admin']);
+$r->get('/admin/communications/log/{id}', [ConnectOpsController::class, 'viewLog'], ['admin']);
+$r->get('/admin/feedback', [ConnectOpsController::class, 'feedback'], ['admin']);
+$r->post('/admin/feedback/{id}', [ConnectOpsController::class, 'feedbackAction'], ['admin']);
+$r->get('/admin/notifications', [ConnectOpsController::class, 'notifications'], ['admin']);
+$r->post('/admin/notifications/rules', [ConnectOpsController::class, 'saveRule'], ['admin']);
+$r->get('/admin/reporting', [ConnectOpsController::class, 'reporting'], ['admin']);
+$r->get('/admin/training-sync', [ConnectOpsController::class, 'training'], ['admin']);
+$r->post('/admin/training-sync', [ConnectOpsController::class, 'trainingAction'], ['admin']);
+$r->get('/admin/platform-settings', [ConnectOpsController::class, 'platformSettings'], ['admin']);
 $r->get('/newmuslim/home', [DashboardController::class, 'newMuslimHome'], ['approved', 'newmuslim']);
 
 // ---- teams -----------------------------------------------------------

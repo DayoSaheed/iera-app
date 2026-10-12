@@ -51,6 +51,10 @@ final class Jobs
             'ra_reminders' => ['Risk assessments not started', $daily, 'Reminds the processors about UK risk assessments not started 3+ days after qualification.', ['hour' => 9]],
             'onboarding_reminders' => ['Weekly onboarding reminders', $weekly, 'Monday: UK and Online applicants with outstanding onboarding steps.', ['dow' => [1], 'hour' => 8]],
             'gorap_reminders' => ['GORAP training reminders', $weekly, 'Monday: approved Exhibitions / Street Dawah volunteers without the GORAP training.', ['dow' => [1], 'hour' => 8]],
+            'comm_scheduled' => ['Scheduled communications', $every5, 'Delivers bulk communications whose scheduled time has arrived.'],
+            'inactivity_nudge' => ['Inactivity nudge & zero-hours chaser', $daily, 'Daily at 09:00: emails approved volunteers with no activity for 30 days (reminder template) and, on the last day of the month, those with zero hours this month (chaser template).', ['hour' => 9]],
+            'training_sync' => ['Training completions sync', $every6h, 'Pulls LearnDash completions from the training site and awards the Dawah Training badge (when configured).'],
+            'story_sync' => ['Story hub sync', $daily, 'Imports new stories from the global iERA site.', ['hour' => 4]],
         ];
     }
 
@@ -98,6 +102,32 @@ final class Jobs
     }
 
     // ---- jobs ----------------------------------------------------------
+
+    public static function comm_scheduled(): string
+    {
+        return Communications::runScheduled() . ' scheduled send(s) delivered';
+    }
+
+    public static function inactivity_nudge(): string
+    {
+        $r = Communications::inactivityCheck();
+        return $r['inactive'] . ' inactive volunteer(s) nudged' . ($r['last_day'] ? ', ' . $r['zero_hours'] . ' zero-hours chaser(s)' : '');
+    }
+
+    public static function training_sync(): string
+    {
+        $r = TrainingSync::sync();
+        if (isset($r['error'])) {
+            return 'Skipped: ' . $r['error'];
+        }
+        return count($r['awarded']) . ' awarded, ' . count($r['skipped']) . ' skipped, ' . count($r['errors']) . ' error(s)';
+    }
+
+    public static function story_sync(): string
+    {
+        $r = StorySync::sync();
+        return isset($r['error']) ? 'Skipped: ' . $r['error'] : $r['imported'] . ' imported, ' . $r['skipped'] . ' skipped';
+    }
 
     public static function interview_reminders(): string
     {

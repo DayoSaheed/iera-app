@@ -89,6 +89,7 @@ final class Onboarding
             'warning' => $pct < 30 ? 'Full profile not yet completed.' : '', 'link' => self::link('/admin/applications/' . $app['id']),
         ]);
         Notification::pushMany(self::adminUserIds(), 'New Volunteer Signup: ' . ($app['name'] ?: $app['email']) . ' - ' . $app['volunteer_category'], ($app['name'] ?: $app['email']) . ' (' . $app['volunteer_category'] . ') signed up. Profile: ' . $pct . '%.', ['category' => 'admin', 'icon' => 'user-plus', 'link' => '/admin/applications/' . $app['id'], 'source' => 'signup']);
+        try { NotificationRules::fireSignup($app); } catch (\Throwable $e) { \App\Core\Logger::warning('Notification rules: ' . $e->getMessage()); }
     }
 
     public static function afterUpdate(array $before, array $after): void
@@ -159,11 +160,13 @@ final class Onboarding
     {
         $vars = ['first_name' => $app['first_name'] ?: 'there', 'last_name' => (string) $app['last_name'], 'review_days' => (string) Setting::get('connect_review_days'), 'dashboard_link' => self::link('/dashboard')];
         EmailService::send('connect_application_received', [$app['email']], $vars);
+        Communications::triggerAutomaticSend('application_received', [$app['email']], 'application_received', [], false);
         Notification::push($app['user_id'], 'Application submitted', 'Jazak Allahu khair. Our team will review your application within ' . Setting::get('connect_review_days') . '.', ['category' => 'application', 'icon' => 'check-circle', 'type' => 'success', 'link' => '/dashboard']);
         $details = self::table(['Email' => $app['email'], 'Phone' => $app['phone'], 'Category' => $app['volunteer_category'], 'Location' => trim(($app['city'] ?? '') . ', ' . ($app['country'] ?? ''), ', '), 'Submitted' => fmt_datetime($app['submitted_at'])]);
         EmailService::send('connect_onboarding_complete_admin', self::adminEmail(), ['full_name' => $app['name'], 'category' => $app['volunteer_category'], 'details' => $details, 'link' => self::link('/admin/applications/' . $app['id'])]);
         Notification::pushMany(self::adminUserIds(), 'New Volunteer Application', $app['name'] . ' (' . $app['volunteer_category'] . ') just submitted their application. Review it in the admin panel.', ['category' => 'admin', 'icon' => 'clipboard', 'link' => '/admin/applications/' . $app['id'], 'source' => 'submitted']);
         AuditLog::log('application.submitted', 'application', $app['id'], ['category' => $app['volunteer_category']], $app['user_id']);
+        try { NotificationRules::fire('profile_completed', NotificationRules::signupVars($app), $app, $app['name'] . ' completed their profile.', 'check-circle'); } catch (\Throwable $e) { \App\Core\Logger::warning('Notification rules: ' . $e->getMessage()); }
     }
 
     private static function onStatusChanged(array $app): void
@@ -175,10 +178,12 @@ final class Onboarding
                 break;
             case 'Approved':
                 EmailService::send('connect_application_approved', [$app['email']], $vars);
+                Communications::triggerAutomaticSend('application_approved', [$app['email']], 'application_approved', [], false);
                 Notification::push($app['user_id'], "You're approved! Full access is now unlocked.", 'Welcome to the iERA volunteer family. Everything is now available to you.', ['category' => 'application', 'icon' => 'award', 'type' => 'success', 'link' => '/dashboard']);
                 break;
             case 'Rejected':
                 EmailService::send('connect_application_rejected', [$app['email']], $vars + ['rejection_reason' => (string) ($app['id_rejection_reason'] ?? '')]);
+                Communications::triggerAutomaticSend('application_rejected', [$app['email']], 'application_rejected', ['rejection_reason' => (string) ($app['id_rejection_reason'] ?? '')], false);
                 Notification::push($app['user_id'], 'Application update', 'Your application was not successful at this time. Please check your email for details.', ['category' => 'application', 'icon' => 'x-circle', 'type' => 'danger', 'link' => '/dashboard']);
                 break;
         }

@@ -97,8 +97,10 @@ final class Notification
     {
         if ($id) {
             DB::update('notifications', ['is_read' => 1, 'read_at' => now()], 'id = ? AND user_id = ?', [$id, $userId]);
+            try { DB::update('comm_logs', ['in_app_read' => 1, 'read_at' => now()], 'notification_id = ? AND in_app_read = 0', [$id]); } catch (\Throwable) {}
         } else {
             DB::update('notifications', ['is_read' => 1, 'read_at' => now()], 'user_id = ? AND is_read = 0', [$userId]);
+            try { DB::update('comm_logs', ['in_app_read' => 1, 'read_at' => now()], 'user_id = ? AND in_app_read = 0', [$userId]); } catch (\Throwable) {}
         }
     }
 
