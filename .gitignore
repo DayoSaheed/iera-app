@@ -6,3 +6,5 @@ storage/backups/*
 !storage/**/.gitkeep
 dist/
 .DS_Store
+public/uploads/branding/*
+!public/uploads/branding/.gitkeep
