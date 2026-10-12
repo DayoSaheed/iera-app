@@ -1,0 +1,38 @@
+# iERA App - Apache configuration for the public document root
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Force HTTPS (cPanel AutoSSL). Comment out for plain-HTTP local testing.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Serve existing files (assets) directly, everything else goes to index.php
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# Never serve dotfiles
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# PHP hardening (ignored by hosts that do not allow php_value here)
+<IfModule mod_php.c>
+  php_value upload_max_filesize 12M
+  php_value post_max_size 16M
+  php_flag display_errors Off
+</IfModule>

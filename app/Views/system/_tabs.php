@@ -1,0 +1,2 @@
+<?php $tabs = ['' => 'Overview', 'settings' => 'Settings', 'email-templates' => 'Email templates', 'form-templates' => 'Form templates', 'jobs' => 'Scheduled jobs', 'email-log' => 'Email log', 'audit-log' => 'Audit log', 'admins' => 'Admins', 'import' => 'Import']; ?>
+<div class="tabs"><?php foreach ($tabs as $k => $l): ?><a class="tab <?= ($systab ?? '') === $k ? 'is-active' : '' ?>" href="<?= e(url('/system' . ($k ? '/' . $k : ''))) ?>"><?= e($l) ?></a><?php endforeach; ?></div>
