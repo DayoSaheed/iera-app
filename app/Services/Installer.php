@@ -89,6 +89,8 @@ final class Installer
                 $n++;
             }
         }
+        // Migrations newer than schema.sql (sql/migrations/*.sql not yet recorded) are applied as part of a fresh install too.
+        Migrator::apply();
         return $n;
     }
 

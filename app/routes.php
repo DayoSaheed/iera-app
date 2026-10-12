@@ -288,3 +288,8 @@ $r->get('/api/users/names', [ApiController::class, 'names'], ['approved']);
 $r->get('/api/health', [ApiController::class, 'health'], ['always']);
 $r->post('/webhooks/stripe', [WebhookController::class, 'stripe'], ['nocsrf', 'always']);
 $r->get('/cron/run', [WebhookController::class, 'cron'], ['always']);
+
+// ---- module route files (app/routes/*.php) ------------------------------------
+foreach (glob(APP_PATH . '/routes/*.php') ?: [] as $moduleRoutes) {
+    require $moduleRoutes;
+}

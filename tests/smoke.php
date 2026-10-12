@@ -534,6 +534,7 @@ check('per-volunteer report shows the volunteer with a risk badge', str_contains
 http('POST', '/admin/training-sync', ['action' => 'award', 'email' => 'fresh@example.org'], $adminId);
 check('manual Dawah Training badge awarded once', \App\Services\TrainingSync::hasBadge($fid, 'Dawah Training Completed') && !\App\Services\TrainingSync::manualAward('fresh@example.org')['ok'] && !\App\Services\TrainingSync::manualAward('ghost@example.org')['ok']);
 check('training sync reports missing configuration', isset(\App\Services\TrainingSync::sync()['error']));
+foreach (glob(__DIR__ . '/smoke_*.php') ?: [] as $moduleTest) { require $moduleTest; }
 $legacyVol = User::create(['email' => 'legacyvol@example.org', 'type' => 'volunteer', 'status' => 'new', 'position' => 'street_dawah']);
 check('legacy volunteer form still available for admin-created accounts', \App\Core\Auth::homePath(User::find($legacyVol)) === '/register/volunteer' && str_contains(http('GET', '/register/volunteer', [], $legacyVol)->body, 'data-stepper'));
 check('vol dashboard', http('GET', '/dashboard', [], $volId)->status === 200);
