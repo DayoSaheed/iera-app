@@ -18,12 +18,17 @@ use App\Models\EmailLog;
  */
 final class Mailer
 {
+    /** Error message of the most recent send() in this request, null when it succeeded. */
+    public static ?string $lastError = null;
+
     public static function send(array $message): bool
     {
+        self::$lastError = null;
         $cfg = \App\Models\Setting::mail();
         $driver = $cfg['driver'];
         $to = self::normalize($message['to'] ?? []);
         if (!$to) {
+            self::$lastError = 'No valid recipient address';
             return false;
         }
         $message['to'] = $to;
@@ -47,6 +52,7 @@ final class Mailer
             $error = $e->getMessage();
             Logger::error('Mail failed: ' . $error, ['subject' => $message['subject']]);
         }
+        self::$lastError = $error;
         EmailLog::record($message, $ok ? 'sent' : 'failed', $error);
         return $ok;
     }

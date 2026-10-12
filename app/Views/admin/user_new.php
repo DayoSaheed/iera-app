@@ -1,4 +1,4 @@
-<?php $label = ['newmuslim' => 'New Muslim', 'org' => 'Organization', 'volunteer' => 'Volunteer'][$type]; $title = 'Add ' . $label; $active = 'admin'; $breadcrumbs = ['Admin Dashboard' => '/admin/users?type=' . $type, $title => null]; ?>
+<?php $label = ['newmuslim' => 'New Muslim', 'org' => 'Organization', 'volunteer' => 'Volunteer'][$type]; $title = 'Add ' . $label; $active = 'admin'; $breadcrumbs = ['People' => '/admin/users?type=' . $type, $title => null]; ?>
 <div class="card" style="max-width:820px">
   <form method="post" action="<?= e(url('/admin/users/new?type=' . $type)) ?>" novalidate><?= csrf_field() ?><input type="hidden" name="type" value="<?= e($type) ?>">
     <div class="field is-required"><label>Email <span class="req">*</span></label><input type="email" name="email" value="<?= old('email') ?>" required></div>

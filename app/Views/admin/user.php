@@ -1,6 +1,6 @@
 <?php
 $title = \App\Models\User::fullName($target); $active = 'admin';
-$breadcrumbs = ['Admin Dashboard' => $back, $title => null];
+$breadcrumbs = ['People' => $back, $title => null];
 $teamNames = \App\Models\Team::names();
 ?>
 <div class="grid" style="grid-template-columns: 2fr 1fr">

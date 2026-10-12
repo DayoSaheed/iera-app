@@ -73,11 +73,15 @@ final class DashboardController extends Controller
             'pending_registrations' => count(User::list(['no_groups' => true, 'exclude_type' => 'superadmin'], false)),
             'in_review' => (int) DB::fetchColumn("SELECT COUNT(*) FROM users WHERE type = 'volunteer' AND status IN ('enrolled','id_verified','training_video','in_review')"),
             'unassigned' => (int) DB::fetchColumn("SELECT COUNT(*) FROM users n WHERE n.type = 'newmuslim' AND n.status IN ('enrolled','approved') AND NOT EXISTS (SELECT 1 FROM mentor_assignments a WHERE a.mentee_id = n.id AND a.rejected_at IS NULL)"),
+            'org_in_review' => (int) DB::fetchColumn("SELECT COUNT(*) FROM users WHERE type = 'org' AND status = 'in_review'"),
+            'vacations_requested' => (int) DB::fetchColumn("SELECT COUNT(*) FROM vacation_requests WHERE status = 'requested'"),
+            'reports_overdue' => (int) DB::fetchColumn("SELECT COUNT(*) FROM reports WHERE status = 'pending' AND created_at < ?", [date('Y-m-d H:i:s', strtotime('-7 days'))]),
         ];
         return $this->view('dashboard/superadmin', [
             'u' => $u,
             'year' => $year,
             'totals' => $totals,
+            'issues' => Auth::isSysadmin($u) ? \App\Services\Health::issues() : [],
             'provinces' => \App\Services\Stats::byProvince(),
             'teams' => \App\Services\Stats::teamCards(),
             'recentUsers' => array_slice(User::list(['exclude_type' => 'superadmin', 'order' => 'u.created_at DESC']), 0, 8),

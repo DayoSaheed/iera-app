@@ -9,17 +9,25 @@ final class EmailLog
 {
     public static function record(array $message, string $status, ?string $error): void
     {
+        $row = [
+            'to_email' => substr(implode(', ', array_column($message['to'] ?? [], 'email')), 0, 500),
+            'subject' => substr((string) ($message['subject'] ?: ('[template ' . ($message['template_id'] ?? '') . ']')), 0, 255),
+            'template_key' => $message['template_key'] ?? null,
+            'status' => $status,
+            'driver' => $message['driver'] ?? null,
+            'error' => $error,
+            'created_at' => now(),
+        ];
         try {
-            DB::insert('email_log', [
-                'to_email' => substr(implode(', ', array_column($message['to'] ?? [], 'email')), 0, 500),
-                'subject' => substr((string) ($message['subject'] ?: ('[template ' . ($message['template_id'] ?? '') . ']')), 0, 255),
-                'template_key' => $message['template_key'] ?? null,
-                'status' => $status,
-                'driver' => $message['driver'] ?? null,
-                'error' => $error,
-                'created_at' => now(),
-            ]);
-        } catch (\Throwable) {
+            DB::insert('email_log', $row);
+        } catch (\Throwable $e) {
+            // Older databases (before migration 0002) have no "driver" column: still record the attempt.
+            try {
+                unset($row['driver']);
+                DB::insert('email_log', $row);
+            } catch (\Throwable $e2) {
+                \App\Core\Logger::error('Could not write email_log: ' . $e2->getMessage());
+            }
         }
     }
 

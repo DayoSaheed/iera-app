@@ -168,6 +168,7 @@ $r->post('/system/settings/test-mail', [SystemController::class, 'testMail'], ['
 $r->get('/system/admins', [SystemController::class, 'admins'], ['sysadmin', 'always']);
 $r->post('/system/admins', [SystemController::class, 'saveAdmin'], ['sysadmin', 'always']);
 $r->post('/system/maintenance', [SystemController::class, 'maintenance'], ['sysadmin', 'always']);
+$r->post('/system/migrate', [SystemController::class, 'migrate'], ['sysadmin', 'always']);
 $r->get('/system/backup', [SystemController::class, 'backup'], ['sysadmin', 'always']);
 $r->get('/system/import', [SystemController::class, 'importForm'], ['sysadmin', 'always']);
 $r->post('/system/import', [SystemController::class, 'import'], ['sysadmin', 'always']);

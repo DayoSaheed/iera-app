@@ -9,3 +9,5 @@ dist/
 public/uploads/branding/*
 !public/uploads/branding/.gitkeep
 storage/exports/*
+storage/*.sqlite
+storage/install.lock

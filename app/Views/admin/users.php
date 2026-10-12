@@ -1,4 +1,4 @@
-<?php $title = 'Admin Dashboard'; $active = 'admin'; $super = \App\Core\Auth::isSuperadmin($u); ?>
+<?php $title = \App\Core\Auth::isOrg($u) ? 'New Muslims you referred' : 'People · ' . (\App\Controllers\AdminController::LISTS[$type] ?? 'Users'); $active = 'admin'; $super = \App\Core\Auth::isSuperadmin($u); ?>
 <div class="card">
   <div class="card-head">
     <div class="tabs" style="margin:0;border:0"><?php foreach ($lists as $k => $l): ?><a class="tab <?= $type === $k ? 'is-active' : '' ?>" href="<?= e(url('/admin/users?type=' . $k)) ?>"><?= e($l) ?></a><?php endforeach; ?></div>

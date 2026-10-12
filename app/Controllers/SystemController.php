@@ -60,6 +60,8 @@ final class SystemController extends Controller
             'checks' => $checks,
             'maintenance' => Setting::bool('maintenance_mode'),
             'lastCron' => $lastCron,
+            'pendingMigrations' => \App\Services\Migrator::pending(),
+            'issues' => \App\Services\Health::issues(),
         ]);
     }
 
@@ -162,14 +164,37 @@ final class SystemController extends Controller
         $u = $this->user();
         $to = $req->str('to') ?: $u['email'];
         $driver = Setting::mail()['driver'];
-        $ok = EmailService::send('admin_notice', [$to], ['subject' => 'Test email from ' . Config::get('app.name'), 'body' => 'If you can read this, email delivery is working. Sent ' . now() . ' using the "' . $driver . '" method.']);
-        $last = \App\Core\DB::fetch('SELECT * FROM email_log ORDER BY id DESC LIMIT 1');
+        $subject = 'Test email from ' . Config::get('app.name');
+        $body = '<p>If you can read this, email delivery is working.</p><p>Sent ' . e(now()) . ' UTC using the <strong>' . e($driver) . '</strong> method.</p>';
+        // Sent through the Mailer directly (not a template) so the test only depends on the delivery settings.
+        $ok = \App\Core\Mailer::send([
+            'to' => [$to],
+            'subject' => $subject,
+            'html' => \App\Core\View::partial('emails/layout', ['body' => $body, 'subject' => $subject, 'vars' => ['app_name' => Config::get('app.name')]]),
+            'template_key' => 'test',
+        ]);
+        AuditLog::log('system.test_mail', null, null, ['to' => $to, 'driver' => $driver, 'ok' => $ok, 'error' => \App\Core\Mailer::$lastError]);
         if ($ok && $driver === 'log') {
             Flash::warning('The delivery method is "log": the message was only written to storage/logs/mail.log and NOT sent to ' . $to . '. Choose smtp or sendgrid above, save, then test again.');
+        } elseif ($ok) {
+            Flash::success("Test email handed to the $driver server for $to. If it does not arrive within a few minutes, check the spam folder and the sender mailbox settings.");
         } else {
-            Flash::add($ok ? 'success' : 'error', $ok ? "Test email handed to the $driver server for $to. If it does not arrive within a few minutes, check the spam folder and the sender mailbox settings." : 'Sending failed: ' . ($last['error'] ?? 'see the email log'));
+            Flash::error('Sending failed (' . $driver . '): ' . (\App\Core\Mailer::$lastError ?: 'unknown error') . '. The attempt is recorded in System Admin → Email log.');
         }
         return $this->redirect('/system/settings#Email');
+    }
+
+    /** Apply pending SQL migrations from the browser (cPanel hosts rarely have shell access). */
+    public function migrate(Request $req): Response
+    {
+        try {
+            $done = \App\Services\Migrator::apply();
+            AuditLog::log('system.migrate', null, null, $done);
+            Flash::success($done ? 'Database updated: ' . implode(', ', $done) : 'The database is already up to date.');
+        } catch (\Throwable $e) {
+            Flash::error('Database update failed: ' . $e->getMessage());
+        }
+        return $this->redirect('/system');
     }
 
     public function runAllJobs(Request $req): Response

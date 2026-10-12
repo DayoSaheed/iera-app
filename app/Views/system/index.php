@@ -1,5 +1,12 @@
 <?php $title = 'System Admin'; $active = 'system'; ?>
 <?= \App\Core\View::partial('system/_tabs', ['systab' => '']) ?>
+<?php if ($pendingMigrations): ?>
+<div class="flash flash-warning" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-right:14px">
+  <div class="grow"><strong>Database update required.</strong> This version needs <?= count($pendingMigrations) ?> database change<?= count($pendingMigrations) > 1 ? 's' : '' ?> (<?= e(implode(', ', $pendingMigrations)) ?>). Until it is applied some features, such as the email log, cannot save records.</div>
+  <form method="post" action="<?= e(url('/system/migrate')) ?>"><?= csrf_field() ?><button class="btn btn-dark"><?= icon('database', '', 16) ?> Apply database updates</button></form>
+</div>
+<?php endif; ?>
+<div class="card" style="margin-bottom:16px"><div class="card-head"><div><h2>Things to fix</h2><p class="small muted" style="margin:0">Checked every time this page opens. Most important first.</p></div></div><?= \App\Core\View::partial('partials/issues', ['issues' => $issues]) ?></div>
 <div class="grid-4">
   <div class="stat primary"><div class="stat-label">Users</div><div class="stat-value"><?= $counts['users'] ?></div></div>
   <div class="stat"><div class="stat-label">Teams</div><div class="stat-value"><?= $counts['teams'] ?></div></div>
@@ -19,6 +26,7 @@
       <li>Mail driver <span><?= e($checks['mail_driver']) ?></span></li>
       <li>Cron ran in the last 15 minutes <span class="<?= $checks['cron_recent'] ? 'yes' : 'no' ?>"><?= $checks['cron_recent'] ? 'Yes' : 'No' ?></span></li>
       <li>PHP / database <span><?= e($checks['php']) ?> / <?= e($checks['db']) ?></span></li>
+      <li>Database schema up to date <span class="<?= $pendingMigrations ? 'no' : 'yes' ?>"><?= $pendingMigrations ? count($pendingMigrations) . ' pending' : 'Yes' ?></span></li>
     </ul>
   </div>
   <div class="card-stack">

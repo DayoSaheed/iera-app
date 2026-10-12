@@ -94,7 +94,7 @@ Create the sender mailbox (e.g. `no-reply@iera.ca`) in cPanel → **Email Accoun
 
 ## Updating later
 
-Upload the new zip over the existing folder (never overwrite `config/config.php` or `storage/`), then run `php tools/migrate.php` from the Terminal to apply any new files in `sql/migrations/`.
+Upload the new zip over the existing folder (never overwrite `config/config.php` or `storage/`), then open **System Admin → Overview** and click **Apply database updates** if the "Things to fix" list asks for it (the same as running `php tools/migrate.php` from the Terminal). The "Things to fix" list on the super admin dashboard also tells you about missing email settings, cron, permissions and other setup problems, each with a link to where it is fixed.
 
 ## Troubleshooting
 

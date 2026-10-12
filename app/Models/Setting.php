@@ -17,7 +17,7 @@ final class Setting
             // ---- Appearance ----
             'brand_primary' => ['Primary colour', '#d4006a', 'color', 'Appearance', 'Buttons, links and highlights (magenta).'],
             'brand_accent' => ['Accent colour', '#f6c400', 'color', 'Appearance', 'Secondary highlights and calls to action (yellow).'],
-            'brand_dark' => ['Sidebar colour', '#0b0b0f', 'color', 'Appearance', 'Sidebar and dark surfaces (black).'],
+            'brand_dark' => ['Sidebar colour', '#000000', 'color', 'Appearance', 'Sidebar and dark surfaces (black).'],
             'brand_logo' => ['Logo', '', 'image', 'Appearance', 'PNG or SVG, shown in the sidebar and on the sign-in page. Square or wide, max 2 MB.'],
             'login_background' => ['Sign-in / registration background image', '', 'image', 'Appearance', 'JPG or PNG, at least 1600px wide, max 4 MB. A dark overlay keeps the text readable.'],
             'login_tagline' => ['Sign-in page tagline', 'Connecting humanity with God, one conversation at a time.', 'text', 'Appearance', 'Short line shown under the logo on the sign-in page.'],
@@ -117,7 +117,7 @@ final class Setting
     {
         $primary = self::hex((string) self::get('brand_primary'), '#d4006a');
         $accent = self::hex((string) self::get('brand_accent'), '#f6c400');
-        $dark = self::hex((string) self::get('brand_dark'), '#0b0b0f');
+        $dark = self::hex((string) self::get('brand_dark'), '#000000');
         return [
             'primary' => $primary, 'primary_600' => self::shade($primary, -0.15), 'primary_50' => self::tint($primary, 0.9),
             'accent' => $accent, 'accent_50' => self::tint($accent, 0.84), 'dark' => $dark,
@@ -126,8 +126,21 @@ final class Setting
 
     public static function logoUrl(): string
     {
-        $logo = (string) self::get('brand_logo', '');
+        $logo = self::uploadedFile('brand_logo');
         return $logo !== '' ? url($logo) : url('/assets/img/logo.svg');
+    }
+
+    /** Public path of an uploaded branding image, or '' when the setting is empty or the file was removed from disk. */
+    public static function uploadedFile(string $key): string
+    {
+        $path = (string) self::get($key, '');
+        if ($path === '') {
+            return '';
+        }
+        if (str_starts_with($path, '/uploads/') && !is_file(BASE_PATH . '/public' . $path)) {
+            return '';
+        }
+        return $path;
     }
 
     private static function hex(string $v, string $default): string

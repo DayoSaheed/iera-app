@@ -50,7 +50,9 @@ final class Session
 
     public static function regenerate(): void
     {
-        session_regenerate_id(true);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
     }
 
     public static function destroy(): void

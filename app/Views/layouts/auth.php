@@ -1,7 +1,7 @@
 <?php
 use App\Core\Config;
 $pageTitle = $title ?? 'Sign in';
-$__bg = (string) \App\Models\Setting::get('login_background', '');
+$__bg = \App\Models\Setting::uploadedFile('login_background');
 $__b = \App\Models\Setting::brand();
 ?>
 <!DOCTYPE html>
