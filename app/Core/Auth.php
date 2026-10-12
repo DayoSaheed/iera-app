@@ -103,6 +103,20 @@ final class Auth
         return ($u['type'] ?? '') === 'newmuslim';
     }
 
+    /** Extra role from user_roles (see User::ROLES). Superadmins implicitly hold every role. */
+    public static function hasRole(?array $u, string $role): bool
+    {
+        $u ??= self::user();
+        return self::isSuperadmin($u) || in_array($role, $u['roles'] ?? [], true);
+    }
+
+    /** Superadmin or a user granted the "admin" role: may use the admin control centre. */
+    public static function isAdmin(?array $u = null): bool
+    {
+        $u ??= self::user();
+        return self::isSuperadmin($u) || in_array('admin', $u['roles'] ?? [], true);
+    }
+
     public static function hasGroup(?array $u, string $group): bool
     {
         return in_array($group, $u['groups'] ?? [], true);

@@ -341,3 +341,19 @@ code { font-family: ui-monospace, monospace; font-size: .88em; background: var(-
 .issue-text { flex: 1; min-width: 0; } .issue-title { font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .issue-detail { color: var(--muted); font-size: .85rem; margin-top: 2px; }
 .issue-tag { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); } .issue.is-error .issue-tag { background: var(--primary-50); color: var(--primary); border-color: transparent; } .issue.is-warning .issue-tag { background: var(--accent-50); color: #000; border-color: transparent; }
 @media (max-width: 700px) { .issue { flex-wrap: wrap; } .issue .btn { margin-left: 34px; } }
+
+/* notifications */
+.bell-wrap { position: relative; }
+.bell { position: relative; display: inline-flex; padding: 6px; }
+.bell-count { position: absolute; top: 0; right: 0; background: var(--primary); color: #fff; font-size: .62rem; font-weight: 800; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; line-height: 1.3; }
+.bell-panel { position: absolute; right: 0; top: 44px; width: 340px; max-width: 90vw; background: #fff; border: 1px solid #000; border-radius: 12px; box-shadow: var(--shadow-hover); z-index: 60; overflow: hidden; }
+.bell-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.bell-list { max-height: 360px; overflow-y: auto; }
+.bell-item { display: block; padding: 10px 14px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--text); font-size: .88rem; }
+.bell-item.is-unread { background: var(--accent-50); } .bell-item:hover { background: var(--surface-2); }
+.bell-item b { display: block; } .bell-item small { color: var(--muted); }
+.notif-list { list-style: none; margin: 0; padding: 0; } .notif { display: flex; gap: 14px; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+.notif.is-unread { background: var(--accent-50); border-radius: 8px; }
+.notif-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: #000; color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
+.notif.is-danger .notif-icon { background: var(--primary); color: #fff; } .notif.is-success .notif-icon { background: var(--success); color: #fff; }
+.notif-text { flex: 1; min-width: 0; } .notif-title { font-weight: 700; } .notif-msg { font-size: .88rem; color: var(--text); } .notif-when { font-size: .78rem; color: var(--muted); margin-top: 2px; }

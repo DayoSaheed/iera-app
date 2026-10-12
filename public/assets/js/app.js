@@ -283,3 +283,23 @@
   // ---- auto-submit selects -------------------------------------------------------------
   $$('select[data-autosubmit]').forEach(s => s.addEventListener('change', () => s.form && s.form.submit()));
 })();
+
+// notification bell
+(() => {
+  const wrap = document.querySelector('[data-bell]'); if (!wrap) return;
+  const toggle = wrap.querySelector('[data-bell-toggle]'), panel = wrap.querySelector('[data-bell-panel]'), list = wrap.querySelector('[data-bell-list]');
+  let loaded = false;
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const base = (document.querySelector('meta[name="app-base"]') || {}).content || '';
+  toggle.addEventListener('click', e => {
+    if (window.innerWidth < 700) return; // phones go straight to the page
+    e.preventDefault(); panel.hidden = !panel.hidden;
+    if (!panel.hidden && !loaded) {
+      fetch(toggle.getAttribute('href').replace(/\/notifications$/, '/notifications/feed'), { headers: { Accept: 'application/json' } }).then(r => r.json()).then(d => {
+        loaded = true;
+        list.innerHTML = d.items.length ? d.items.map(i => `<a class="bell-item ${i.read ? '' : 'is-unread'}" href="${i.link ? esc(i.link) : toggle.getAttribute('href')}"><b>${esc(i.title)}</b>${i.message ? esc(i.message).slice(0, 120) : ''}<br><small>${esc(i.when)}</small></a>`).join('') : '<div class="muted small" style="padding:14px">No notifications yet.</div>';
+      }).catch(() => { list.innerHTML = '<div class="muted small" style="padding:14px">Could not load.</div>'; });
+    }
+  });
+  document.addEventListener('click', e => { if (!wrap.contains(e.target)) panel.hidden = true; });
+})();

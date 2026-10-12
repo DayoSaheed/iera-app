@@ -72,7 +72,18 @@ final class Middleware
             case 'org':
                 self::require($user, Auth::isSuperadmin($user) || Auth::isOrg($user));
                 return null;
+            case 'admin':
+                self::require($user, Auth::isAdmin($user));
+                return null;
             default:
+                if (str_starts_with($name, 'role:')) {
+                    $roles = explode('|', substr($name, 5));
+                    $ok = false;
+                    foreach ($roles as $r) {
+                        $ok = $ok || Auth::hasRole($user, $r);
+                    }
+                    self::require($user, $ok);
+                }
                 return null;
         }
     }

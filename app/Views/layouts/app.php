@@ -49,6 +49,11 @@ $impersonator = $_SESSION['impersonator'] ?? null;
       </div>
       <div class="topbar-actions">
         <?= $actions ?? '' ?>
+        <?php $__unread = $me ? \App\Models\Notification::unreadCount($me['id']) : 0; ?>
+        <div class="bell-wrap" data-bell>
+          <a class="icon-btn bell" href="<?= e(url('/notifications')) ?>" aria-label="Notifications" data-bell-toggle><?= icon('bell', '', 22) ?><?php if ($__unread): ?><span class="bell-count"><?= $__unread > 99 ? '99+' : $__unread ?></span><?php endif; ?></a>
+          <div class="bell-panel" hidden data-bell-panel><div class="bell-head"><strong>Notifications</strong><a class="small" href="<?= e(url('/notifications')) ?>">See all</a></div><div class="bell-list" data-bell-list><div class="muted small" style="padding:12px">Loading…</div></div></div>
+        </div>
         <a class="user-chip" href="<?= e(url('/profile')) ?>" title="<?= e($me['email'] ?? '') ?>">
           <span class="avatar"><?= e(mb_strtoupper(mb_substr($me['first_name'] ?? $me['email'] ?? '?', 0, 1))) ?></span>
           <span class="user-name"><?= e(\App\Models\User::fullName($me)) ?></span>

@@ -94,6 +94,7 @@ final class User
             $r['sub_groups'] = [];
             $r['teams'] = [];
             $r['admin_teams'] = [];
+            $r['roles'] = [];
         }
         unset($r);
         if (!$withRelations) {
@@ -113,6 +114,13 @@ final class User
         }
         foreach (DB::fetchAll("SELECT user_id, team_id FROM team_admins WHERE user_id IN $in", $params) as $g) {
             $rows[$index[$g['user_id']]]['admin_teams'][] = $g['team_id'];
+        }
+        try {
+            foreach (DB::fetchAll("SELECT user_id, role FROM user_roles WHERE user_id IN $in", $params) as $g) {
+                $rows[$index[$g['user_id']]]['roles'][] = $g['role'];
+            }
+        } catch (\Throwable) {
+            // user_roles arrives with migration 0003; older databases simply have no extra roles yet.
         }
     }
 
@@ -224,6 +232,18 @@ final class User
     public static function setGroups(string $id, array $groups): void
     {
         self::syncPivot('user_groups', 'grp', $id, $groups, self::GROUPS);
+    }
+
+    /** Extra Connect roles: admin, mosque_coordinator, exhibition_contacts, exhibition_host, online_workspace, manager. */
+    public const ROLES = ['admin' => 'Administrator', 'mosque_coordinator' => 'Mosque coordinator', 'exhibition_contacts' => 'Exhibition contacts', 'exhibition_host' => 'Exhibition host', 'online_workspace' => 'Online volunteering workspace', 'manager' => 'Manager'];
+
+    public static function setRoles(string $id, array $roles, ?string $by = null): void
+    {
+        $roles = array_values(array_intersect(array_unique($roles), array_keys(self::ROLES)));
+        DB::delete('user_roles', 'user_id = ?', [$id]);
+        foreach ($roles as $r) {
+            DB::insert('user_roles', ['user_id' => $id, 'role' => $r, 'granted_by' => $by, 'created_at' => now()]);
+        }
     }
 
     public static function setSubGroups(string $id, array $subs): void
