@@ -34,6 +34,15 @@ final class AuthController extends Controller
 {
     private const STEPS = ['Account type', 'Email', 'Verify', 'Done'];
 
+    /** Registration categories offered on the first step. key => [label, description, icon, type, position] */
+    public const CATEGORIES = [
+        'daee' => ['Street Dawah Da\'ee', 'Join a team and share Islam at public events and dawah tables.', 'megaphone', 'volunteer', 'street_dawah'],
+        'mentor' => ['New Muslim Mentor', 'Guide a new Muslim through the handbook with weekly check-ins.', 'heart-handshake', 'volunteer', 'new_muslim_mentor'],
+        'volunteer' => ['Other Volunteer Roles', 'IT, media, education, logistics, admin, fundraising and more.', 'briefcase', 'volunteer', ''],
+        'newmuslim' => ['New Muslim', 'Get connected with a mentor and free learning resources.', 'landmark', 'newmuslim', 'newmuslim'],
+        'org' => ['Organization / Masjid', 'Partner with us and refer new Muslims for mentoring.', 'users', 'org', ''],
+    ];
+
     private function state(): array
     {
         return Session::get('login', []);
@@ -57,22 +66,35 @@ final class AuthController extends Controller
     public function start(Request $req): Response
     {
         $state = $this->state();
-        $type = $req->get('type');
-        if (in_array($type, ['volunteer', 'newmuslim'], true)) {
-            $this->setState(['type' => $type]);
+        $cat = (string) $req->get('category', '');
+        if (isset(self::CATEGORIES[$cat])) {
+            return $this->applyCategory($cat);
+        }
+        if ($req->get('signin') === '1') {
+            $this->setState(['signin' => true]);
             return $this->redirect('/login/email');
         }
-        return $this->stepsView('type', ['selected' => $state['type'] ?? null], 0);
+        return $this->stepsView('type', ['selected' => $state['category'] ?? null, 'categories' => self::CATEGORIES], 0);
     }
 
     public function chooseType(Request $req): Response
     {
-        $type = $req->str('type');
-        if (!in_array($type, ['volunteer', 'newmuslim'], true)) {
-            Flash::error('Please choose how you want to sign in.');
+        $cat = $req->str('category') ?: $req->str('type');
+        if ($cat === 'signin') {
+            $this->setState(['signin' => true]);
+            return $this->redirect('/login/email');
+        }
+        if (!isset(self::CATEGORIES[$cat])) {
+            Flash::error('Please choose a category to continue.');
             return $this->redirect('/login');
         }
-        $this->setState(['type' => $type]);
+        return $this->applyCategory($cat);
+    }
+
+    private function applyCategory(string $cat): Response
+    {
+        [, , , $type, $position] = self::CATEGORIES[$cat];
+        $this->setState(['category' => $cat, 'type' => $type, 'position' => $position]);
         return $this->redirect('/login/email');
     }
 
@@ -86,16 +108,16 @@ final class AuthController extends Controller
     public function emailStep(Request $req): Response
     {
         $state = $this->state();
-        if (empty($state['type'])) {
+        if (empty($state['type']) && empty($state['signin'])) {
             return $this->redirect('/login');
         }
-        return $this->stepsView('email', ['email' => $state['email'] ?? ''], 1);
+        return $this->stepsView('email', ['email' => $state['email'] ?? '', 'categories' => self::CATEGORIES], 1);
     }
 
     public function submitEmail(Request $req): Response
     {
         $state = $this->state();
-        if (empty($state['type'])) {
+        if (empty($state['type']) && empty($state['signin'])) {
             return $this->redirect('/login');
         }
         $email = strtolower($req->str('email'));
@@ -118,9 +140,14 @@ final class AuthController extends Controller
             return $this->redirect('/login/code');
         }
         if (!$user) {
-            // New account: created with the chosen type, not onboarded yet.
-            $id = User::create(['email' => $email, 'type' => $state['type'], 'status' => 'new']);
-            AuditLog::log('user.self_created', 'user', $id, ['type' => $state['type']], $id);
+            if (empty($state['type'])) {
+                // "Sign in" shortcut used by someone without an account: send them to the categories.
+                Flash::info('We could not find an account for ' . $email . '. Choose a category below to register.');
+                return $this->redirect('/login');
+            }
+            // New account: created with the chosen type, not onboarded yet. The preferred role is kept for the form.
+            $id = User::create(['email' => $email, 'type' => $state['type'], 'status' => 'new', 'position' => $state['position'] ?: null]);
+            AuditLog::log('user.self_created', 'user', $id, ['type' => $state['type'], 'category' => $state['category'] ?? null], $id);
             $user = User::find($id);
         }
         $state['email'] = $email;

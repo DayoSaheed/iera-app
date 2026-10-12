@@ -58,6 +58,9 @@ $r->get('/register/volunteer', [RegistrationController::class, 'volunteerForm'],
 $r->post('/register/volunteer', [RegistrationController::class, 'volunteerSubmit'], ['auth']);
 $r->get('/register/newmuslim', [RegistrationController::class, 'newMuslimForm'], ['auth']);
 $r->post('/register/newmuslim', [RegistrationController::class, 'newMuslimSubmit'], ['auth']);
+$r->get('/register/organization', [RegistrationController::class, 'organizationForm'], ['auth']);
+$r->post('/register/organization', [RegistrationController::class, 'organizationSubmit'], ['auth']);
+$r->get('/pending/organization', [RegistrationController::class, 'pendingOrganization'], ['auth']);
 $r->get('/pending/volunteer', [RegistrationController::class, 'pendingVolunteer'], ['auth']);
 $r->get('/pending/newmuslim', [RegistrationController::class, 'pendingNewMuslim'], ['auth']);
 $r->post('/pending/training', [RegistrationController::class, 'training'], ['auth']);
@@ -125,10 +128,10 @@ $r->post('/documents/{id}/delete', [ProfileController::class, 'deleteDocument'],
 $r->post('/refer', [MenteeController::class, 'refer'], ['approved']);
 
 // ---- admin -----------------------------------------------------------
-$r->get('/admin/users', [AdminController::class, 'users'], ['org']);
-$r->get('/admin/users/export.csv', [AdminController::class, 'exportUsers'], ['org']);
-$r->get('/admin/users/new', [AdminController::class, 'createUser'], ['org']);
-$r->post('/admin/users/new', [AdminController::class, 'storeUser'], ['org']);
+$r->get('/admin/users', [AdminController::class, 'users'], ['approved', 'org']);
+$r->get('/admin/users/export.csv', [AdminController::class, 'exportUsers'], ['approved', 'org']);
+$r->get('/admin/users/new', [AdminController::class, 'createUser'], ['approved', 'org']);
+$r->post('/admin/users/new', [AdminController::class, 'storeUser'], ['approved', 'org']);
 $r->get('/admin/users/{id}', [AdminController::class, 'showUser'], ['approved']);
 $r->post('/admin/users/{id}', [AdminController::class, 'updateUser'], ['approved']);
 $r->post('/admin/users/{id}/status', [AdminController::class, 'status'], ['superadmin']);

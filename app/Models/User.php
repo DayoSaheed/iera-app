@@ -34,7 +34,7 @@ final class User
         'inactive' => 'Inactive',
         'removed' => 'Removed',
     ];
-    public const ORG_STATUSES = ['approved' => 'Approved', 'inactive' => 'Inactive'];
+    public const ORG_STATUSES = ['in_review' => 'In Review', 'approved' => 'Approved', 'rejected' => 'Rejected', 'inactive' => 'Inactive'];
 
     /** Real columns; everything else goes to profile_json. */
     public const COLUMNS = [

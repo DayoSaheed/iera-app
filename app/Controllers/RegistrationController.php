@@ -84,6 +84,62 @@ final class RegistrationController extends Controller
         return $this->redirect('/pending/volunteer');
     }
 
+    public function organizationForm(Request $req): Response
+    {
+        $u = $this->user();
+        if (!empty($u['groups']) && $u['type'] !== 'org') {
+            return $this->redirect(Auth::homePath($u));
+        }
+        if (!empty($u['groups'])) {
+            return $this->redirect(Auth::homePath($u));
+        }
+        $fields = FormTemplate::fields('organization');
+        $values = array_merge($u['profile'], array_intersect_key($u, array_flip(User::COLUMNS)), $_SESSION['_old'] ?? []);
+        return $this->view('register/form', [
+            'title' => 'Organization Registration',
+            'intro' => 'Tell us about your organization or masjid. An administrator will review and approve your account.',
+            'formHtml' => FormRenderer::render($fields, $values, ['steps' => true, 'submitLabel' => 'Submit for approval']),
+            'action' => '/register/organization',
+            'errors' => $_SESSION['_errors'] ?? [],
+        ], 'auth');
+    }
+
+    public function organizationSubmit(Request $req): Response
+    {
+        $u = $this->user();
+        $fields = FormTemplate::fields('organization');
+        [$values, $errors] = FormRenderer::collect($fields, $req);
+        if ($errors) {
+            return $this->failValidation($req, array_map(fn($e) => [$e], $errors), '/register/organization');
+        }
+        $values['groups'] = ['org'];
+        $values['type'] = 'org';
+        $values['status'] = 'in_review';
+        $values['enrollment_method'] = 'self_enrolling';
+        User::save($u['id'], $values);
+        AuditLog::log('user.registered', 'user', $u['id'], ['type' => 'org']);
+        $fresh = User::find($u['id']);
+        EmailService::send('admin_notice', EmailService::adminRecipients('newmuslim_coordinator_email'), [
+            'subject' => 'New organization registration: ' . ($values['org_name'] ?? User::fullName($fresh)),
+            'body' => 'An organization registered and is waiting for approval.<br>' . EmailService::detailsHtml($fields, $fresh + $fresh['profile']) . '<br><a href="' . e(url('/admin/users/' . $u['id'])) . '">Review and approve</a>',
+        ]);
+        Auth::refresh();
+        Flash::success('Thank you. Your organization account is awaiting approval.');
+        return $this->redirect('/pending/organization');
+    }
+
+    public function pendingOrganization(Request $req): Response
+    {
+        $u = $this->user();
+        if (empty($u['groups'])) {
+            return $this->redirect('/register/organization');
+        }
+        if ($u['status'] === 'approved') {
+            return $this->redirect('/admin/users?type=newmuslim');
+        }
+        return $this->view('pending/organization', ['u' => $u], 'auth');
+    }
+
     public function newMuslimForm(Request $req): Response
     {
         $u = $this->user();

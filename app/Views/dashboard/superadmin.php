@@ -53,11 +53,11 @@
 
 <div class="grid-2" style="margin-top:16px">
   <div class="card"><div class="card-head"><h2>Latest registrations</h2><span class="grow"></span><a class="btn btn-sm btn-ghost" href="<?= e(url('/admin/users?type=all')) ?>">All users</a></div>
-    <?php if (!$recentUsers): ?><p class="muted">Nobody has registered yet.</p><?php else: ?><table class="table"><thead><tr><th>Name</th><th>Type</th><th>Status</th><th>City</th><th>When</th></tr></thead><tbody>
-    <?php foreach ($recentUsers as $r): ?><tr data-href="<?= e(url('/admin/users/' . $r['id'])) ?>" class="row-link"><td><?= e(\App\Models\User::fullName($r)) ?></td><td><?= e(ucfirst((string) $r['type'])) ?></td><td><span class="badge badge-<?= e($r['status']) ?>"><?= e(\App\Models\User::statusLabel($r)) ?></span></td><td><?= e($r['city']) ?></td><td><?= e(fmt_date($r['created_at'])) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?>
+    <?php if (!$recentUsers): ?><p class="muted">Nobody has registered yet.</p><?php else: ?><div class="table-wrap"><table class="table"><thead><tr><th>Name</th><th>Type</th><th>Status</th><th>City</th><th>When</th></tr></thead><tbody>
+    <?php foreach ($recentUsers as $r): ?><tr data-href="<?= e(url('/admin/users/' . $r['id'])) ?>" class="row-link"><td><?= e(\App\Models\User::fullName($r)) ?></td><td><?= e(ucfirst((string) $r['type'])) ?></td><td><span class="badge badge-<?= e($r['status']) ?>"><?= e(\App\Models\User::statusLabel($r)) ?></span></td><td><?= e($r['city']) ?></td><td><?= e(fmt_date($r['created_at'])) ?></td></tr><?php endforeach; ?></tbody></table></div><?php endif; ?>
   </div>
   <div class="card"><div class="card-head"><h2>Next 14 days</h2><span class="grow"></span><a class="btn btn-sm btn-ghost" href="<?= e(url('/calendar')) ?>">Calendar</a></div>
-    <?php if (!$upcoming): ?><p class="muted">No events scheduled in the next two weeks.</p><?php else: ?><table class="table"><thead><tr><th>When</th><th>Event</th><th>Team</th></tr></thead><tbody>
-    <?php foreach ($upcoming as $s): ?><tr data-href="<?= e(url('/attendance/' . $s['team_id'] . '/' . $s['id'])) ?>" class="row-link"><td><?= e(fmt_datetime($s['start_at'])) ?></td><td><?= e($s['name']) ?><br><small class="muted"><?= e($s['city']) ?></small></td><td><?= e($s['team_name']) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?>
+    <?php if (!$upcoming): ?><p class="muted">No events scheduled in the next two weeks.</p><?php else: ?><div class="table-wrap"><table class="table"><thead><tr><th>When</th><th>Event</th><th>Team</th></tr></thead><tbody>
+    <?php foreach ($upcoming as $s): ?><tr data-href="<?= e(url('/attendance/' . $s['team_id'] . '/' . $s['id'])) ?>" class="row-link"><td><?= e(fmt_datetime($s['start_at'])) ?></td><td><?= e($s['name']) ?><br><small class="muted"><?= e($s['city']) ?></small></td><td><?= e($s['team_name']) ?></td></tr><?php endforeach; ?></tbody></table></div><?php endif; ?>
   </div>
 </div>

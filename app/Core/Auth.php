@@ -134,10 +134,10 @@ final class Auth
 
     public static function isOnboarded(array $u): bool
     {
-        if (in_array($u['type'], ['superadmin', 'org'], true)) {
+        if ($u['type'] === 'superadmin') {
             return true;
         }
-        return !empty($u['groups']) && $u['status'] === 'approved';
+        return !empty($u['groups']) && in_array($u['status'], ['approved', 'completed'], true);
     }
 
     /** Where this user lands after login. */
@@ -146,14 +146,14 @@ final class Auth
         if ($u['type'] === 'superadmin') {
             return '/dashboard';
         }
-        if ($u['type'] === 'org') {
-            return '/admin/users?type=newmuslim';
-        }
         if (empty($u['groups'])) {
-            return $u['type'] === 'newmuslim' ? '/register/newmuslim' : '/register/volunteer';
+            return match ($u['type']) { 'newmuslim' => '/register/newmuslim', 'org' => '/register/organization', default => '/register/volunteer' };
         }
         if ($u['status'] !== 'approved' && $u['status'] !== 'completed') {
-            return $u['type'] === 'newmuslim' ? '/pending/newmuslim' : '/pending/volunteer';
+            return match ($u['type']) { 'newmuslim' => '/pending/newmuslim', 'org' => '/pending/organization', default => '/pending/volunteer' };
+        }
+        if ($u['type'] === 'org') {
+            return '/admin/users?type=newmuslim';
         }
         if (self::hasGroup($u, 'newmuslim')) {
             return '/newmuslim/home';

@@ -74,7 +74,13 @@ $myTeams = $me ? array_map(fn($t) => $teamNames[$t] ?? $t, array_unique(array_me
   </div>
   <?php endif; ?>
   <nav class="sidebar-nav" aria-label="Main">
-    <?php foreach ($items as $it): [$label, $href, $key, $icon] = $it; $children = array_values(array_filter($it[4] ?? [])); ?>
+    <?php
+    $sectionOf = fn($key) => in_array($key, ['analytics', 'admin', 'admin-teams'], true) ? 'Administration' : (in_array($key, ['sd', 'nm', 'nm-home', 'nm-dashboard'], true) ? 'Programs' : (in_array($key, ['profile', 'system', 'vacations'], true) ? 'Account' : 'Overview'));
+    $rank = ['Overview' => 0, 'Programs' => 1, 'Administration' => 2, 'Account' => 3];
+    usort($items, fn($a, $b) => $rank[$sectionOf($a[2])] <=> $rank[$sectionOf($b[2])]);
+    $section = null; foreach ($items as $it): [$label, $href, $key, $icon] = $it; $children = array_values(array_filter($it[4] ?? []));
+      $sec = $sectionOf($key);
+      if ($sec !== $section): $section = $sec; ?><div class="nav-section"><?= e($section) ?></div><?php endif; ?>
       <?php if ($children): $open = str_starts_with($active, $key) || in_array($active, array_column($children, 2), true); ?>
         <details class="nav-group" <?= $open ? 'open' : '' ?>>
           <summary><?= icon($icon, 'nav-icon') ?><?= e($label) ?></summary>

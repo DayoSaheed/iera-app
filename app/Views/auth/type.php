@@ -1,13 +1,16 @@
 <?= \App\Core\View::partial('partials/steps', ['steps' => $steps, 'current' => $current]) ?>
 <h1 class="auth-title">Welcome</h1>
-<p class="muted">Register or sign in. First, tell us who you are.</p>
-<form method="post" action="<?= e(url('/login/type')) ?>" class="type-chooser">
+<p class="muted">New here? Choose the category that fits you to register. Everyone signs in with their email.</p>
+<form method="post" action="<?= e(url('/login/type')) ?>" class="category-grid">
   <?= csrf_field() ?>
-  <button class="type-tile tile-volunteer <?= ($selected ?? '') === 'volunteer' ? 'is-selected' : '' ?>" name="type" value="volunteer">
-    <span class="tile-icon"><?= icon('heart-handshake', '', 36) ?></span><span class="tile-title">Volunteer</span><span class="tile-sub">Da'ees, mentors, team leads and all iERA volunteers</span>
+  <?php foreach ($categories as $key => [$label, $desc, $ico, $type]): ?>
+  <button class="category-tile <?= ($selected ?? '') === $key ? 'is-selected' : '' ?> cat-<?= e($type) ?>" name="category" value="<?= e($key) ?>">
+    <span class="tile-icon"><?= icon($ico, '', 26) ?></span>
+    <span class="tile-text"><span class="tile-title"><?= e($label) ?></span><span class="tile-sub"><?= e($desc) ?></span></span>
+    <?= icon('chevron-right', 'tile-arrow', 18) ?>
   </button>
-  <button class="type-tile tile-newmuslim <?= ($selected ?? '') === 'newmuslim' ? 'is-selected' : '' ?>" name="type" value="newmuslim">
-    <span class="tile-icon"><?= icon('landmark', '', 36) ?></span><span class="tile-title">New Muslim</span><span class="tile-sub">Get connected with a mentor and learning resources</span>
-  </button>
+  <?php endforeach; ?>
 </form>
-<p class="auth-help">Admins and organization accounts sign in as <strong>Volunteer</strong>.</p>
+<div class="auth-divider"><span>Already registered?</span></div>
+<form method="post" action="<?= e(url('/login/type')) ?>"><?= csrf_field() ?><button class="btn btn-dark btn-block btn-lg" name="category" value="signin"><?= icon('log-out', '', 18) ?> Sign in with your email</button></form>
+<p class="auth-help">Admins and team leads also sign in with their email.</p>

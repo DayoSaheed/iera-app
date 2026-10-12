@@ -297,11 +297,17 @@ final class Seeder
         ];
 
         $organization = [
-            ['type' => 'text', 'label' => 'Organization name', 'name' => 'org_name', 'required' => true],
-            ['type' => 'text', 'label' => 'Contact first name', 'name' => 'first_name', 'required' => true],
-            ['type' => 'text', 'label' => 'Contact last name', 'name' => 'last_name', 'required' => true],
-            ['type' => 'tel', 'label' => 'Phone', 'name' => 'mobile'],
-            ['type' => 'city_auto', 'label' => 'City, Province', 'name' => 'city'],
+            ['type' => 'section', 'label' => 'Organization', 'name' => 'sec_org'],
+            ['type' => 'text', 'label' => 'Organization / masjid name', 'name' => 'org_name', 'required' => true],
+            ['type' => 'select', 'label' => 'Type of organization', 'name' => 'org_type', 'required' => true, 'options' => [['label' => 'Masjid / Islamic centre', 'value' => 'masjid'], ['label' => 'Student association (MSA)', 'value' => 'msa'], ['label' => 'Charity / non-profit', 'value' => 'charity'], ['label' => 'Dawah organization', 'value' => 'dawah'], ['label' => 'Other', 'value' => 'other']]],
+            ['type' => 'text', 'label' => 'Website (optional)', 'name' => 'org_website'],
+            ['type' => 'city_auto', 'label' => 'City, Province', 'name' => 'city', 'required' => true],
+            ['type' => 'section', 'label' => 'Contact person', 'name' => 'sec_contact'],
+            ['type' => 'text', 'label' => 'First name', 'name' => 'first_name', 'required' => true],
+            ['type' => 'text', 'label' => 'Last name', 'name' => 'last_name', 'required' => true],
+            ['type' => 'text', 'label' => 'Role in the organization', 'name' => 'org_role', 'required' => true],
+            ['type' => 'tel', 'label' => 'Phone', 'name' => 'mobile', 'required' => true],
+            ['type' => 'textarea', 'label' => 'How would you like to work with iERA?', 'name' => 'org_notes'],
         ];
 
         $team = [
