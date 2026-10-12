@@ -82,6 +82,22 @@ if ($me) {
                 ['Mentor handbook', $docs . '/HandBook_Mentor.pdf', 'ext'],
             ]];
         }
+        if (Auth::isAdmin($me)) {
+            $items[] = ['Control centre', '/admin', 'cc', 'layout', 'People'];
+            $items[] = ['Applications', null, 'cc-apps', 'clipboard', 'People', [
+                ['All applications', '/admin/applications', 'cc-apps-all'],
+                ['UK onboarded', '/admin/applications?mode=uk_onboarded', 'cc-apps-uk'],
+                ['Admin volunteers', '/admin/uk-admin', 'cc-ukadmin'],
+                ['Old / rejected', '/admin/applications?mode=old_rejected', 'cc-apps-old'],
+            ]];
+            $items[] = ['UK volunteers', null, 'cc-uk', 'flag', 'People', [
+                ['Interviews UK', '/admin/interviews', 'cc-interviews'],
+                ['Interview calendar', '/admin/interview-calendar', 'cc-calendar'],
+                ['Risk assessments UK', '/admin/risk-assessments', 'cc-risk'],
+            ]];
+            $items[] = ['Hierarchy', '/admin/hierarchy', 'cc-hierarchy', 'globe', 'People'];
+            $items[] = ['Participation log', '/admin/participation-log', 'cc-participation', 'list', 'People'];
+        }
         if ($super) {
             $items[] = ['People', null, 'admin', 'users', 'People', [
                 ['All users', '/admin/users?type=all', 'admin-all'],

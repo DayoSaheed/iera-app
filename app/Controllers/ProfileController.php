@@ -174,7 +174,7 @@ final class ProfileController extends Controller
         $u = $this->user();
         $doc = UserDocument::find($req->params['id']) ?? $this->notFound();
         $owner = User::find($doc['user_id']);
-        $allowed = $doc['user_id'] === $u['id'] || Auth::isSuperadmin($u)
+        $allowed = $doc['user_id'] === $u['id'] || Auth::isSuperadmin($u) || Auth::isAdmin($u)
             || ($owner && Auth::isLead($u) && array_intersect($owner['teams'], $u['admin_teams']));
         if (!$allowed) {
             $this->forbidden();

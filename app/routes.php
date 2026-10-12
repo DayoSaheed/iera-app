@@ -15,6 +15,7 @@ use App\Controllers\MenteeController;
 use App\Controllers\NotificationController;
 use App\Controllers\OnboardingController;
 use App\Controllers\VolunteerAreaController;
+use App\Controllers\ConnectAdminController;
 use App\Controllers\ProfileController;
 use App\Controllers\RegistrationController;
 use App\Controllers\ReportController;
@@ -120,6 +121,27 @@ $r->post('/feedback/{id}', [VolunteerAreaController::class, 'feedbackAction'], [
 $r->get('/settings', [VolunteerAreaController::class, 'settings'], ['auth']);
 $r->post('/settings', [VolunteerAreaController::class, 'saveSettings'], ['auth']);
 $r->post('/profile/connect', [VolunteerAreaController::class, 'saveProfile'], ['auth']);
+// Admin control centre (Connect)
+$r->get('/admin', [ConnectAdminController::class, 'overview'], ['admin']);
+$r->get('/admin/applications', [ConnectAdminController::class, 'applications'], ['admin']);
+$r->get('/admin/applications/export.csv', [ConnectAdminController::class, 'applicationsCsv'], ['admin']);
+$r->get('/admin/applications/{id}', [ConnectAdminController::class, 'review'], ['admin']);
+$r->post('/admin/applications/{id}/action', [ConnectAdminController::class, 'action'], ['admin']);
+$r->get('/admin-signup', [ConnectAdminController::class, 'signupRequestForm'], ['auth']);
+$r->post('/admin-signup', [ConnectAdminController::class, 'signupRequestSubmit'], ['auth']);
+$r->post('/admin/signup-requests/{id}', [ConnectAdminController::class, 'signupRequestDecide'], ['admin']);
+$r->get('/admin/interviews', [ConnectAdminController::class, 'interviews'], ['admin']);
+$r->get('/admin/interview-calendar', [ConnectAdminController::class, 'calendar'], ['admin']);
+$r->post('/admin/interview-calendar/slots', [ConnectAdminController::class, 'addSlots'], ['admin']);
+$r->post('/admin/interview-calendar/slots/{id}/delete', [ConnectAdminController::class, 'deleteSlot'], ['admin']);
+$r->get('/admin/risk-assessments', [ConnectAdminController::class, 'riskAssessments'], ['admin']);
+$r->get('/admin/uk-admin', [ConnectAdminController::class, 'ukAdmin'], ['admin']);
+$r->post('/admin/uk-admin/{id}', [ConnectAdminController::class, 'saveUkAdmin'], ['admin']);
+$r->get('/admin/hierarchy', [ConnectAdminController::class, 'hierarchy'], ['admin']);
+$r->post('/admin/hierarchy/regions', [ConnectAdminController::class, 'saveRegion'], ['admin']);
+$r->post('/admin/hierarchy/assignments', [ConnectAdminController::class, 'saveAssignment'], ['admin']);
+$r->get('/admin/participation-log', [ConnectAdminController::class, 'participation'], ['admin']);
+$r->post('/admin/participation-log', [ConnectAdminController::class, 'participationSave'], ['admin']);
 $r->get('/newmuslim/home', [DashboardController::class, 'newMuslimHome'], ['approved', 'newmuslim']);
 
 // ---- teams -----------------------------------------------------------

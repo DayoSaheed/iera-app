@@ -77,6 +77,7 @@ final class Setting
             'connect_ra_email' => ['Risk assessment processor email', '', 'email', 'Onboarding', 'Receives UK risk assessment qualification alerts and reminders, together with the onboarding admin.'],
             'connect_online_manager_name' => ['Online volunteering manager name', 'the Online volunteering team', 'text', 'Onboarding', 'Shown to Online applicants in the Action Centre.'],
             'connect_online_manager_email' => ['Online volunteering manager email', '', 'email', 'Onboarding', 'Receives Online Dawah interest registrations.'],
+            'connect_ra_allowlist' => ['Risk assessment reviewers', '', 'textarea', 'Onboarding', 'One email per line. These admins may open the Risk Assessments UK page (superadmins always can).'],
             'connect_online_verifier_emails' => ['Online workspace allow-list', '', 'textarea', 'Onboarding', 'One email per line. These admins may use the Online volunteering workspace and verify requirements.'],
             'connect_dawah_course_url' => ['GORAP Dawah course URL', 'https://training.iera.org/courses/iera-dawah-training-course/', 'text', 'Onboarding', 'External training course for Street Dawah and Exhibitions volunteers.'],
             'connect_nmm_course_url' => ['New Muslim Mentor course URL', 'https://global.iera.org/training/new-muslim-mentor', 'text', 'Onboarding', ''],
