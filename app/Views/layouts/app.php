@@ -12,6 +12,7 @@ $impersonator = $_SESSION['impersonator'] ?? null;
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title><?= e($pageTitle) ?> · <?= e(Config::get('app.name')) ?></title>
 <meta name="csrf-token" content="<?= e(\App\Core\Csrf::token()) ?>">
 <link rel="icon" href="<?= e(\App\Models\Setting::logoUrl()) ?>">
