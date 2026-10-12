@@ -39,6 +39,29 @@ final class Setting
             'sharepoint_sync_enabled' => ['SharePoint sync enabled', '0', 'bool', 'Integrations', 'Requires credentials in config.php.'],
             'stripe_identity_enabled' => ['Stripe Identity enabled', '0', 'bool', 'Integrations', 'Requires keys in config.php. When off, the ID step is skipped.'],
             'reports_export_enabled' => ['Write JSON report snapshots', '1', 'bool', 'Integrations', 'Writes storage/exports/event_report.json and mentor.json every 6 hours for BI tools.'],
+            // ---- Email delivery (editable by the admin; overrides config.php) ----
+            'mail_driver' => ['Mail delivery method', 'log', 'select:smtp|sendgrid|mail|log', 'Email', 'smtp = your mail server (recommended on cPanel), sendgrid = SendGrid API, mail = PHP mail(), log = write to storage/logs/mail.log only (nothing is really sent).'],
+            'mail_from_email' => ['From address', '', 'email', 'Email', 'Must be a mailbox on your domain, e.g. no-reply@iera.ca.'],
+            'mail_from_name' => ['From name', 'iERA', 'text', 'Email', ''],
+            'smtp_host' => ['SMTP host', 'localhost', 'text', 'Email', 'On cPanel usually localhost or mail.yourdomain.'],
+            'smtp_port' => ['SMTP port', '465', 'number', 'Email', '465 with SSL, 587 with TLS.'],
+            'smtp_encryption' => ['SMTP encryption', 'ssl', 'select:ssl|tls|none', 'Email', ''],
+            'smtp_user' => ['SMTP username', '', 'text', 'Email', 'Usually the full mailbox address.'],
+            'smtp_pass' => ['SMTP password', '', 'secret', 'Email', 'Stored encrypted. Leave blank to keep the current value.'],
+            'sendgrid_api_key' => ['SendGrid API key', '', 'secret', 'Email', 'Only for the sendgrid method. Stored encrypted.'],
+            // ---- Stripe Identity ----
+            'stripe_secret_key' => ['Stripe secret key', '', 'secret', 'Stripe Identity', 'sk_live_... Stored encrypted.'],
+            'stripe_webhook_secret' => ['Stripe webhook signing secret', '', 'secret', 'Stripe Identity', 'whsec_... Webhook URL: /webhooks/stripe'],
+            // ---- Microsoft SharePoint ----
+            'ms_tenant_id' => ['Microsoft tenant ID', '', 'text', 'SharePoint', ''],
+            'ms_client_id' => ['Microsoft app (client) ID', '', 'text', 'SharePoint', ''],
+            'ms_client_secret' => ['Microsoft client secret', '', 'secret', 'SharePoint', 'Stored encrypted.'],
+            'sp_street_dawah_site_id' => ['Street Dawah list: site ID', '', 'text', 'SharePoint', ''],
+            'sp_street_dawah_list_id' => ['Street Dawah list: list ID', '', 'text', 'SharePoint', ''],
+            'sp_nm_tracker_site_id' => ['New Muslim tracker: site ID', '', 'text', 'SharePoint', ''],
+            'sp_nm_tracker_list_id' => ['New Muslim tracker: list ID', '', 'text', 'SharePoint', ''],
+            // ---- Scheduler ----
+            'cron_secret' => ['Scheduler web key', '', 'secret', 'System', 'Lets an external monitor trigger the jobs: GET /cron/run?key=... every 5 minutes. Jobs can also be run from the Scheduled jobs page.'],
         ];
     }
 
@@ -60,9 +83,44 @@ final class Setting
     {
         self::load();
         if (array_key_exists($key, self::$cache) && self::$cache[$key] !== null) {
-            return self::$cache[$key];
+            $v = self::$cache[$key];
+            return self::isSecret($key) ? \App\Core\Crypto::decrypt((string) $v) : $v;
         }
         return $default ?? (self::definitions()[$key][1] ?? null);
+    }
+
+    public static function isSecret(string $key): bool
+    {
+        return (self::definitions()[$key][2] ?? '') === 'secret';
+    }
+
+    /** Setting value, falling back to a config.php key when the setting is empty. */
+    public static function orConfig(string $settingKey, string $configKey, mixed $default = ''): mixed
+    {
+        $v = self::get($settingKey);
+        if ($v !== null && $v !== '') {
+            return $v;
+        }
+        $c = \App\Core\Config::get($configKey);
+        return $c !== null && $c !== '' ? $c : $default;
+    }
+
+    /** Resolved mail configuration (settings first, then config.php). */
+    public static function mail(): array
+    {
+        return [
+            'driver' => (string) self::orConfig('mail_driver', 'mail.driver', 'log'),
+            'from_email' => (string) self::orConfig('mail_from_email', 'mail.from_email', ''),
+            'from_name' => (string) self::orConfig('mail_from_name', 'mail.from_name', ''),
+            'sendgrid_api_key' => (string) self::orConfig('sendgrid_api_key', 'mail.sendgrid_api_key', ''),
+            'smtp' => [
+                'host' => (string) self::orConfig('smtp_host', 'mail.smtp.host', 'localhost'),
+                'port' => (int) self::orConfig('smtp_port', 'mail.smtp.port', 587),
+                'user' => (string) self::orConfig('smtp_user', 'mail.smtp.user', ''),
+                'pass' => (string) self::orConfig('smtp_pass', 'mail.smtp.pass', ''),
+                'encryption' => (string) self::orConfig('smtp_encryption', 'mail.smtp.encryption', 'tls'),
+            ],
+        ];
     }
 
     public static function bool(string $key): bool
@@ -86,6 +144,9 @@ final class Setting
     public static function set(string $key, ?string $value): void
     {
         self::load();
+        if ($value !== null && $value !== '' && self::isSecret($key)) {
+            $value = \App\Core\Crypto::encrypt($value);
+        }
         if (DB::fetchColumn('SELECT 1 FROM settings WHERE setting_key = ?', [$key])) {
             DB::update('settings', ['value' => $value, 'updated_at' => now()], 'setting_key = ?', [$key]);
         } else {

@@ -2,9 +2,9 @@
 <div class="grid" style="grid-template-columns: 1fr 300px">
   <div class="card" data-calendar data-scope="<?= \App\Core\Auth::isSuperadmin($u) ? 'all' : 'mine' ?>">
     <div class="cal-head">
-      <button type="button" class="btn btn-sm" data-cal-prev>‹</button>
+      <button type="button" class="btn btn-sm" data-cal-prev><?= icon('chevron-left', '', 16) ?></button>
       <h2 data-cal-title style="margin:0;min-width:180px;text-align:center"></h2>
-      <button type="button" class="btn btn-sm" data-cal-next-month>›</button>
+      <button type="button" class="btn btn-sm" data-cal-next-month><?= icon('chevron-right', '', 16) ?></button>
       <span class="grow"></span>
       <div class="switch"><button type="button" data-cal-scope="mine" class="<?= \App\Core\Auth::isSuperadmin($u) ? '' : 'is-active' ?>">My teams</button><button type="button" data-cal-scope="all" class="<?= \App\Core\Auth::isSuperadmin($u) ? 'is-active' : '' ?>">All teams</button></div>
     </div>

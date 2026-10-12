@@ -54,6 +54,12 @@ final class App
         $request->params = $match['params'];
         $middleware = $match['middleware'];
 
+        // Not installed yet: send everything (except the wizard, health and assets) to the setup wizard
+        $path = $request->path();
+        if (!str_starts_with($path, '/setup') && $path !== '/api/health' && !\App\Services\Installer::isInstalled()) {
+            return Response::redirect('/setup');
+        }
+
         // Maintenance mode blocks everyone except system admins
         if (!in_array('always', $middleware, true) && Setting::bool('maintenance_mode')) {
             $u = Auth::user();

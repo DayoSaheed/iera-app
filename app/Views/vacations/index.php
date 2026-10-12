@@ -2,7 +2,7 @@
 <div class="card">
   <div class="card-head"><h2><?= $scope === 'team' ? 'Requests from your team' : 'My requests' ?></h2><span class="grow"></span>
     <?php if ($manage): ?><div class="switch"><a class="<?= $scope === 'team' ? 'is-active' : '' ?>" href="?scope=team">Team</a><a class="<?= $scope === 'mine' ? 'is-active' : '' ?>" href="?scope=mine">Mine</a></div><?php endif; ?>
-    <button type="button" class="btn btn-primary" data-open="newVacation">＋ New request</button></div>
+    <button type="button" class="btn btn-primary" data-open="newVacation"><?= icon('plus', '', 16) ?> New request</button></div>
   <div class="table-wrap"><table class="data-table" data-table data-empty="No vacation requests.">
     <thead><tr><?php if ($scope === 'team'): ?><th>Volunteer</th><th>Email</th><?php endif; ?><th>Requested</th><th>Reason</th><th>From</th><th>To</th><th data-filter>Status</th><th data-nosort></th></tr></thead>
     <tbody><?php foreach ($rows as $v): $cls = $v['status'] === 'approved' ? 'row-green' : ($v['status'] === 'denied' ? 'row-red' : 'row-yellow'); ?>

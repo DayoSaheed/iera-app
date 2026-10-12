@@ -235,3 +235,11 @@ code { font-family: ui-monospace, monospace; font-size: .88em; background: var(-
 .help-box { background: var(--info-50); border: 1px solid var(--info); color: var(--text); padding: 12px 14px; border-radius: 10px; font-size: .9rem; }
 .mono-editor { font-family: ui-monospace, monospace; font-size: .82rem; min-height: 420px; }
 @media print { .sidebar, .topbar, .footer, .btn, .table-toolbar, .table-foot { display: none !important; } .content { padding: 0; } }
+
+/* icons */
+.icon { display: inline-block; vertical-align: -0.2em; flex-shrink: 0; }
+.btn .icon { vertical-align: -0.15em; }
+.icon-sm { vertical-align: -0.1em; opacity: .8; }
+.nav-icon { width: 20px; height: 20px; opacity: .9; }
+.tile-icon { color: var(--primary); display: inline-flex; }
+.doc-icon { color: var(--primary); display: inline-flex; }

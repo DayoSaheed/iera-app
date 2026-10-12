@@ -15,10 +15,23 @@ use App\Controllers\MenteeController;
 use App\Controllers\ProfileController;
 use App\Controllers\RegistrationController;
 use App\Controllers\ReportController;
+use App\Controllers\SetupController;
 use App\Controllers\SystemController;
 use App\Controllers\TeamController;
 use App\Controllers\VacationController;
 use App\Controllers\WebhookController;
+
+// ---- first-run setup wizard (available until a superadmin exists) ---
+$r->get('/setup', [SetupController::class, 'index'], ['always']);
+$r->get('/setup/requirements', [SetupController::class, 'requirements'], ['always']);
+$r->get('/setup/database', [SetupController::class, 'database'], ['always']);
+$r->post('/setup/database', [SetupController::class, 'saveDatabase'], ['always']);
+$r->post('/setup/database/create-tables', [SetupController::class, 'createTables'], ['always']);
+$r->get('/setup/application', [SetupController::class, 'application'], ['always']);
+$r->post('/setup/application', [SetupController::class, 'saveApplication'], ['always']);
+$r->get('/setup/admin', [SetupController::class, 'admin'], ['always']);
+$r->post('/setup/admin', [SetupController::class, 'saveAdmin'], ['always']);
+$r->get('/setup/done', [SetupController::class, 'done'], ['always']);
 
 // ---- authentication (step by step) ----------------------------------
 $r->get('/', [DashboardController::class, 'root'], ['always']);
@@ -147,6 +160,8 @@ $r->get('/system/email-log', [SystemController::class, 'emailLog'], ['sysadmin',
 $r->get('/system/audit-log', [SystemController::class, 'auditLog'], ['sysadmin', 'always']);
 $r->get('/system/jobs', [SystemController::class, 'jobs'], ['sysadmin', 'always']);
 $r->post('/system/jobs/run', [SystemController::class, 'runJob'], ['sysadmin', 'always']);
+$r->post('/system/jobs/run-all', [SystemController::class, 'runAllJobs'], ['sysadmin', 'always']);
+$r->post('/system/settings/test-mail', [SystemController::class, 'testMail'], ['sysadmin', 'always']);
 $r->get('/system/admins', [SystemController::class, 'admins'], ['sysadmin', 'always']);
 $r->post('/system/admins', [SystemController::class, 'saveAdmin'], ['sysadmin', 'always']);
 $r->post('/system/maintenance', [SystemController::class, 'maintenance'], ['sysadmin', 'always']);

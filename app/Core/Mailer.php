@@ -20,7 +20,8 @@ final class Mailer
 {
     public static function send(array $message): bool
     {
-        $driver = (string) Config::get('mail.driver', 'log');
+        $cfg = \App\Models\Setting::mail();
+        $driver = $cfg['driver'];
         $to = self::normalize($message['to'] ?? []);
         if (!$to) {
             return false;
@@ -34,9 +35,9 @@ final class Mailer
 
         try {
             $ok = match ($driver) {
-                'sendgrid' => self::viaSendgrid($message),
-                'smtp' => self::viaSmtp($message),
-                'mail' => self::viaMail($message),
+                'sendgrid' => self::viaSendgrid($message, $cfg),
+                'smtp' => self::viaSmtp($message, $cfg),
+                'mail' => self::viaMail($message, $cfg),
                 default => self::viaLog($message),
             };
             $error = $ok ? null : 'Driver reported failure';
@@ -70,16 +71,16 @@ final class Mailer
         return $out;
     }
 
-    private static function from(): array
+    private static function from(array $cfg): array
     {
-        return ['email' => (string) Config::get('mail.from_email'), 'name' => (string) Config::get('mail.from_name', '')];
+        return ['email' => (string) $cfg['from_email'], 'name' => (string) $cfg['from_name']];
     }
 
     // ---- sendgrid ----------------------------------------------------
 
-    private static function viaSendgrid(array $m): bool
+    private static function viaSendgrid(array $m, array $cfg): bool
     {
-        $key = (string) Config::get('mail.sendgrid_api_key');
+        $key = (string) $cfg['sendgrid_api_key'];
         if ($key === '') {
             throw new \RuntimeException('SendGrid API key is not configured');
         }
@@ -92,7 +93,7 @@ final class Mailer
         }
         $payload = [
             'personalizations' => [$personalization],
-            'from' => self::from(),
+            'from' => self::from($cfg),
         ];
         if (!empty($m['reply_to'])) {
             $payload['reply_to'] = ['email' => $m['reply_to']];
@@ -127,9 +128,9 @@ final class Mailer
 
     // ---- php mail() --------------------------------------------------
 
-    private static function viaMail(array $m): bool
+    private static function viaMail(array $m, array $cfg): bool
     {
-        $from = self::from();
+        $from = self::from($cfg);
         $boundary = 'b' . bin2hex(random_bytes(8));
         $headers = [
             'From: ' . self::addr($from),
@@ -160,9 +161,9 @@ final class Mailer
 
     // ---- smtp --------------------------------------------------------
 
-    private static function viaSmtp(array $m): bool
+    private static function viaSmtp(array $m, array $mailCfg): bool
     {
-        $cfg = Config::get('mail.smtp', []);
+        $cfg = $mailCfg['smtp'];
         $host = (string) ($cfg['host'] ?? 'localhost');
         $port = (int) ($cfg['port'] ?? 587);
         $enc = (string) ($cfg['encryption'] ?? 'tls');
@@ -204,7 +205,7 @@ final class Mailer
             $cmd(base64_encode((string) $cfg['user']), [334]);
             $cmd(base64_encode((string) $cfg['pass']), [235]);
         }
-        $from = self::from();
+        $from = self::from($mailCfg);
         $cmd('MAIL FROM:<' . $from['email'] . '>', [250]);
         foreach (array_merge($m['to'], $m['cc'], $m['bcc']) as $r) {
             $cmd('RCPT TO:<' . $r['email'] . '>', [250, 251]);

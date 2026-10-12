@@ -67,7 +67,8 @@ final class SystemController extends Controller
     {
         $groups = [];
         foreach (Setting::definitions() as $key => [$label, $default, $type, $group, $help]) {
-            $groups[$group][] = ['key' => $key, 'label' => $label, 'type' => $type, 'help' => $help, 'value' => (string) Setting::get($key)];
+            $value = (string) Setting::get($key);
+            $groups[$group][] = ['key' => $key, 'label' => $label, 'type' => $type, 'help' => $help, 'value' => $type === 'secret' ? ($value !== '' ? '(set)' : '') : $value];
         }
         return $this->view('system/settings', ['groups' => $groups]);
     }
@@ -77,13 +78,45 @@ final class SystemController extends Controller
         foreach (Setting::definitions() as $key => [$label, $default, $type]) {
             if ($type === 'bool') {
                 Setting::set($key, $req->post($key) ? '1' : '0');
+            } elseif ($type === 'secret') {
+                $v = trim((string) ($req->post($key) ?? ''));
+                if ($req->post($key . '_clear') === '1') {
+                    Setting::set($key, '');
+                } elseif ($v !== '') {
+                    Setting::set($key, $v);
+                }
+            } elseif (str_starts_with($type, 'select:')) {
+                $allowed = explode('|', substr($type, 7));
+                $v = (string) $req->post($key);
+                if (in_array($v, $allowed, true)) {
+                    Setting::set($key, $v);
+                }
             } elseif ($req->post($key) !== null) {
                 Setting::set($key, trim((string) $req->post($key)));
             }
         }
         AuditLog::log('system.settings_saved');
         Flash::success('Settings saved.');
-        return $this->redirect('/system/settings');
+        return $this->redirect('/system/settings' . ($req->str('tab') ? '#' . $req->str('tab') : ''));
+    }
+
+    /** Send a test email with the current delivery settings. */
+    public function testMail(Request $req): Response
+    {
+        $u = $this->user();
+        $to = $req->str('to') ?: $u['email'];
+        $ok = EmailService::send('admin_notice', [$to], ['subject' => 'Test email from ' . Config::get('app.name'), 'body' => 'If you can read this, email delivery is working. Sent ' . now() . ' using the "' . Setting::mail()['driver'] . '" method.']);
+        $last = \App\Core\DB::fetch('SELECT * FROM email_log ORDER BY id DESC LIMIT 1');
+        Flash::add($ok ? 'success' : 'error', $ok ? "Test email sent to $to." : 'Sending failed: ' . ($last['error'] ?? 'see the email log'));
+        return $this->redirect('/system/settings#Email');
+    }
+
+    public function runAllJobs(Request $req): Response
+    {
+        $result = Jobs::runDue(true);
+        AuditLog::log('system.jobs_run_all', 'job', 'all', $result);
+        Flash::info('All jobs ran: ' . implode(' | ', array_map(fn($k, $v) => "$k: $v", array_keys($result), $result)));
+        return $this->redirect('/system/jobs');
     }
 
     public function emailTemplates(Request $req): Response
@@ -191,7 +224,7 @@ final class SystemController extends Controller
         foreach (Jobs::definitions() as $job => $def) {
             $jobs[] = ['key' => $job, 'label' => $def[0], 'description' => $def[2], 'last' => JobRun::last($job)];
         }
-        return $this->view('system/jobs', ['jobs' => $jobs, 'runs' => JobRun::recent(100), 'cronSecret' => (string) Config::get('cron.secret')]);
+        return $this->view('system/jobs', ['jobs' => $jobs, 'runs' => JobRun::recent(100), 'cronSecret' => (string) Setting::orConfig('cron_secret', 'cron.secret', ''), 'phpBinary' => PHP_BINARY ?: 'php']);
     }
 
     public function runJob(Request $req): Response

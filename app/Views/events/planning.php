@@ -8,7 +8,7 @@ $breadcrumbs = ['Event Planning' => '/events/planning', $team['name'] => null];
     <span class="grow"></span>
     <?php if (count($teams) > 1): ?><select class="input" style="max-width:220px" onchange="location.href='<?= e(url('/events/planning/')) ?>'+this.value"><?php foreach ($teams as $t): ?><option value="<?= e($t['id']) ?>" <?= $t['id'] === $team['id'] ? 'selected' : '' ?>><?= e($t['name']) ?></option><?php endforeach; ?></select><?php endif; ?>
     <div class="switch"><a class="<?= !$past ? 'is-active' : '' ?>" href="<?= e(url('/events/planning/' . $team['id'])) ?>">Upcoming</a><a class="<?= $past ? 'is-active' : '' ?>" href="<?= e(url('/events/planning/' . $team['id'] . '?past=1')) ?>">Past</a></div>
-    <a class="btn btn-primary" href="<?= e(url('/events/new?team=' . urlencode($team['id']))) ?>">＋ New event</a>
+    <a class="btn btn-primary" href="<?= e(url('/events/new?team=' . urlencode($team['id']))) ?>"><?= icon('plus', '', 16) ?> New event</a>
   </div>
   <div class="table-wrap"><table class="data-table" data-table data-page-size="20" data-empty="No occurrences. Create an event to schedule some.">
     <thead><tr><th>Date</th><th>Event</th><th>Location</th><th data-filter>City</th><th>Hours</th><th>Min</th><th>Attendance</th><th data-nosort>Edit</th></tr></thead>

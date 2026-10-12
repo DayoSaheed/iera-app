@@ -5,7 +5,7 @@
     <label>To <input type="date" class="input" name="to" value="<?= e($to) ?>" style="max-width:170px"></label>
     <select name="team" class="input" style="max-width:220px"><option value="">All my teams</option><?php foreach ($teams as $t): ?><option value="<?= e($t['id']) ?>" <?= $teamId === $t['id'] ? 'selected' : '' ?>><?= e($t['name']) ?></option><?php endforeach; ?></select>
     <button class="btn btn-primary btn-sm">Apply</button><span class="grow"></span>
-    <a class="btn btn-sm" href="<?= e(url('/daee-activity/export.csv?from=' . urlencode($from) . '&to=' . urlencode($to) . '&team=' . urlencode((string) $teamId))) ?>">⬇ CSV</a>
+    <a class="btn btn-sm" href="<?= e(url('/daee-activity/export.csv?from=' . urlencode($from) . '&to=' . urlencode($to) . '&team=' . urlencode((string) $teamId))) ?>"><?= icon('download', '', 16) ?> CSV</a>
   </form>
 </div>
 <div class="grid-3" style="margin-top:16px">

@@ -5,7 +5,7 @@
   <?= csrf_field() ?>
   <div class="field is-required">
     <label for="code">Verification code <span class="req">*</span></label>
-    <input id="code" class="code-input" type="text" name="code" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" required autofocus autocomplete="one-time-code" placeholder="••••••">
+    <input id="code" class="code-input" type="text" name="code" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" required autofocus autocomplete="one-time-code" placeholder="6-digit code">
     <p class="field-hint">The code is valid for <?= \App\Models\Otp::TTL_MINUTES ?> minutes. Check your spam folder if you do not see it.</p>
   </div>
   <label class="check"><input type="checkbox" name="remember" value="1"> <span>Keep me signed in on this device for 30 days</span></label>

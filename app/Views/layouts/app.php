@@ -31,7 +31,7 @@ $impersonator = $_SESSION['impersonator'] ?? null;
   <?= \App\Core\View::partial('partials/nav', ['me' => $me, 'active' => $active ?? '']) ?>
   <div class="main-col">
     <header class="topbar">
-      <button class="icon-btn menu-toggle" type="button" aria-label="Open menu" data-nav-toggle>☰</button>
+      <button class="icon-btn menu-toggle" type="button" aria-label="Open menu" data-nav-toggle><?= icon('menu', '', 24) ?></button>
       <div class="topbar-title">
         <?php if (!empty($breadcrumbs)): ?>
           <nav class="crumbs" aria-label="Breadcrumb">

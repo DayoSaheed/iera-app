@@ -6,7 +6,7 @@ $labels = ['enrolled' => ['Application received', 'We have received your applica
 <ul class="timeline">
 <?php foreach ($pipeline as $i => $key): $state = $i < $pos ? 'is-done' : ($i === $pos ? 'is-active' : ''); if ($key === 'approved') continue; ?>
   <li class="<?= $state ?>">
-    <div class="tl-dot"><?= $i < $pos ? '✓' : $i + 1 ?></div>
+    <div class="tl-dot"><?= $i < $pos ? icon('check', '', 16) : $i + 1 ?></div>
     <div class="tl-body">
       <h3><?= e($labels[$key][0]) ?></h3>
       <?php if ($key === 'enrolled'): ?>

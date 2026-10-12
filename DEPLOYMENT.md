@@ -27,50 +27,43 @@ cPanel → **SSL/TLS Status** → tick `app.iera.ca` → *Run AutoSSL*. Wait unt
 
 ## 4. Database
 
-1. cPanel → **MySQL® Databases**: create a database (e.g. `cpuser_iera`), a user (e.g. `cpuser_iera`) with a long generated password, and add the user to the database with **ALL PRIVILEGES**.
-2. cPanel → **phpMyAdmin** → select the database → *Import* → `sql/schema.sql` → Go. You should see 25 tables.
+cPanel → **MySQL® Databases**: create a database (e.g. `cpuser_iera`), a user (e.g. `cpuser_iera`) with a long generated password, and add the user to the database with **ALL PRIVILEGES**. Keep the three values for the wizard.
+
+Optional: import `sql/schema.sql` with phpMyAdmin now. If you skip this, the wizard creates the tables for you.
 
 ## 5. Upload the application
 
-1. Build the release zip on your computer: `./scripts/package.sh` (creates `dist/iera-app-YYYYMMDD-HHMM.zip`, without secrets, tests or screenshots).
-2. cPanel → **File Manager** → home folder → create `iera-app` → upload the zip into it → right-click → *Extract* → delete the zip.
-3. The result must look like:
-   ```
-   /home/cpuser/iera-app/
-   ├── public/        ← subdomain document root
-   ├── app/  config/  sql/  cron/  tools/  storage/  data/
-   ```
-4. Make sure `storage/` and its sub-folders are writable by PHP (permissions 750 or 755 are fine on cPanel because PHP runs as your user).
+1. cPanel → **File Manager** (or Terminal with `git clone https://github.com/DayoSaheed/iera-app.git iera-app`): the code must end up in `/home/cpuser/iera-app` so that the subdomain's document root `iera-app/public` contains `index.php`.
+2. Make sure `storage/` is writable by PHP (default cPanel permissions are fine).
+3. Optional: copy `config/config.sample.php` to `config/config.php` and fill in the database details. If you do not, the wizard asks for them and writes the file.
 
-## 6. Configure
+## 6. Run the setup wizard
 
-1. Copy `config/config.sample.php` to `config/config.php` and edit:
-   * `app.url` → `https://app.iera.ca`, `app.debug` → `false`, `app.timezone` → `America/Toronto`
-   * `app.key` → 64 random hex characters (`php -r "echo bin2hex(random_bytes(32));"`)
-   * `db.*` → the database name, user and password from step 4
-   * `mail.driver` → `smtp` with the cPanel mailbox credentials (host `mail.iera.ca` or `localhost`, port 465 `ssl` or 587 `tls`), or `sendgrid` with an API key
-   * `stripe.*` and `sharepoint.*` only if you keep those integrations (they are off by default)
-   * `cron.secret` → a random string, only needed if you cannot use cPanel cron
-2. Load the defaults and create your admin account from cPanel → **Terminal** (or SSH):
-   ```bash
-   cd ~/iera-app
-   php tools/install.php
-   php tools/create-admin.php admin@iera.ca Admin Name
-   ```
-   If Terminal is not available, the defaults are loaded automatically on first use and you can create the admin by signing in once with your email, then running the `create-admin` step later, or by temporarily inserting the row in phpMyAdmin (`type = superadmin`, `status = approved`, `is_sysadmin = 1`).
-3. Open `https://app.iera.ca`, choose **Volunteer**, enter the admin email and the emailed code.
-4. Go to **System Admin → Settings** and fill in the organisation name, support and notification emails, WhatsApp group links, documents URL and training video.
-5. **System Admin → Overview** shows the health checks; everything should be green.
+Open `https://ieraca.wees.bio` (your subdomain). The wizard runs only until the first administrator exists:
 
-## 7. Cron
+1. **Requirements**: PHP version, extensions and writable folders.
+2. **Database**: shows whether the connection from `config.php` works. If there is no config file, enter the database details and the wizard writes it. If the tables are missing, click **Create the tables now** (or import `sql/schema.sql` in phpMyAdmin and click Re-check).
+3. **Application**: name, organisation, URL (detected), time zone, support and notification emails.
+4. **Administrator**: your name, email and password. This creates the first superadmin + system admin and signs you in.
 
-cPanel → **Cron Jobs** → add, every 5 minutes:
+Then, in **System Admin → Settings**:
 
-```
-*/5 * * * * /usr/local/bin/php /home/cpuser/iera-app/cron/run.php >/dev/null 2>&1
-```
+* **Email**: choose `smtp` and enter the cPanel mailbox (host `localhost`, port 465, `ssl`, the mailbox address and password), or `sendgrid` with an API key. Click **Save and send test email to me**. Sign-in codes for all other users depend on this.
+* **Notifications, New Muslim, Volunteers**: the addresses, WhatsApp links, documents URL and training video.
+* **Stripe Identity** and **SharePoint**: only if you keep those integrations.
+* **Security**: require two-step sign-in for admins once email delivery works.
 
-(Use the PHP binary path cPanel shows, e.g. `/usr/local/bin/ea-php82`.) The scheduler decides internally which jobs are due; **System Admin → Scheduled jobs** shows every run and lets you run any job manually.
+All of these are stored in the database (secrets encrypted with the application key); `config/config.php` only holds the database connection and the application URL/key.
+
+## 7. Scheduled jobs
+
+Three options, use any (or several):
+
+* **cPanel cron** (recommended): Cron Jobs → every 5 minutes: `*/5 * * * * /usr/local/bin/php /home/cpuser/iera-app/cron/run.php >/dev/null 2>&1` (use the PHP path cPanel shows, e.g. `/usr/local/bin/ea-php82`).
+* **Manually**: System Admin → Scheduled jobs → *Run now* per job, or *Run all jobs now*.
+* **External pinger**: set a *Scheduler web key* in Settings → System and have any uptime/cron service request `https://ieraca.wees.bio/cron/run?key=THEKEY` every 5 minutes.
+
+The scheduler decides internally which jobs are due, so running it more often is harmless.
 
 ## 8. Email
 
@@ -89,10 +82,10 @@ Create the sender mailbox (e.g. `no-reply@iera.ca`) in cPanel → **Email Accoun
 
 ## 10. Go-live checklist
 
-- [ ] `config.php` has `debug => false`, a real `app.key`, HTTPS URL
+- [ ] Setup wizard completed; `config.php` has `debug => false` and the HTTPS URL
 - [ ] AutoSSL certificate valid, HTTP redirects to HTTPS
 - [ ] Cron entry added and **Scheduler: OK** on the System Admin overview
-- [ ] Test email received, SPF/DKIM green
+- [ ] Settings → Email configured, test email received, SPF/DKIM green
 - [ ] Settings filled in (emails, links, video)
 - [ ] Admin two-step sign-in enabled (Settings → Security → *Require two-step sign-in for admins*)
 - [ ] cPanel automatic backups on; **System Admin → Download SQL backup** tested once

@@ -69,3 +69,9 @@ function now(): string
 {
     return date('Y-m-d H:i:s');
 }
+
+/** Inline SVG icon. */
+function icon(string $name, string $class = '', int $size = 20): string
+{
+    return \App\Core\Icons::svg($name, $class, $size);
+}

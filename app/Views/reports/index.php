@@ -12,7 +12,7 @@ foreach ($fields as $f) { if (!empty($f['name']) && !in_array($f['type'] ?? '', 
     </div>
     <span class="grow"></span>
     <?php if ($canTeam): ?><div class="switch"><a class="<?= $scope === 'team' ? 'is-active' : '' ?>" href="?scope=team"><?= \App\Core\Auth::isSuperadmin($u) ? 'All reports' : 'Team reports' ?></a><a class="<?= $scope === 'mine' ? 'is-active' : '' ?>" href="?scope=mine">My reports</a></div><?php endif; ?>
-    <a class="btn btn-sm" href="<?= e(url('/reports/' . $kind . '/export.csv?status=' . $status)) ?>">⬇ Full CSV</a>
+    <a class="btn btn-sm" href="<?= e(url('/reports/' . $kind . '/export.csv?status=' . $status)) ?>"><?= icon('download', '', 16) ?> Full CSV</a>
   </div>
   <?php if ($status === 'pending'): ?><p class="muted small">Rows in red are more than 2 days old. Click a row to submit the report<?= $canTeam ? ' (leads can submit on behalf of a volunteer)' : '' ?>.</p><?php endif; ?>
   <div class="table-wrap"><table class="data-table" data-table data-page-size="15" data-empty="No <?= e(strtolower($label)) ?>.">

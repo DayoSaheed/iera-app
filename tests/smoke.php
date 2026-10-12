@@ -49,6 +49,9 @@ Config::set('app.url', 'http://localhost');
 Config::set('app.debug', true);
 $_SESSION = [];
 
+Config::set('app.install_lock', $dbFile . '.lock');
+Config::set('app.config_path', $dbFile . '.config.php');
+@unlink($dbFile . '.lock');
 $pass = 0; $fail = 0;
 function check(string $name, bool $ok, string $info = ''): void {
     global $pass, $fail;
@@ -70,6 +73,20 @@ foreach (array_filter(array_map('trim', explode(";\n", preg_replace('/^--.*$/m',
 check('tables created', count(DB::driver() === 'sqlite' ? DB::fetchAll("SELECT name FROM sqlite_master WHERE type='table'") : DB::fetchAll('SHOW TABLES')) >= 24);
 $done = Seeder::run();
 check('seeded templates', $done['email_templates'] >= 20 && $done['form_templates'] === 8, json_encode($done));
+
+echo "Setup wizard\n";
+$app = \App\Core\App::boot();
+check('not installed: redirected to setup', str_contains(http('GET', '/dashboard')->headers['Location'] ?? '', '/setup'));
+check('requirements page', str_contains(http('GET', '/setup/requirements')->body, 'PHP 8.1'));
+check('database page sees tables', str_contains(http('GET', '/setup/database')->body, 'Connected'));
+check('application page', http('GET', '/setup/application')->status === 200);
+$r = http('POST', '/setup/application', ['app_name' => 'iERA Test', 'org_name' => 'iERA Test Org', 'app_url' => 'http://localhost', 'timezone' => 'America/Toronto', 'support_email' => 'support@example.org', 'admin_notification_emails' => 'admin@example.org']);
+check('application saved and config written', $r->status === 302 && is_file($dbFile . '.config.php') && Setting::get('org_name') === 'iERA Test Org', (string) $r->status);
+$r = http('POST', '/setup/admin', ['first_name' => 'Wizard', 'last_name' => 'Admin', 'email' => 'wizard@example.org', 'password' => 'correct-horse-battery', 'password_confirmation' => 'correct-horse-battery']);
+$wiz = User::findByEmail('wizard@example.org');
+check('admin created by wizard', $r->status === 302 && $wiz && $wiz['type'] === 'superadmin' && (int) $wiz['is_sysadmin'] === 1 && password_verify('correct-horse-battery', $wiz['password_hash']));
+check('wizard locked afterwards', http('GET', '/setup/requirements')->status === 404 && \App\Services\Installer::isInstalled());
+@unlink($dbFile . '.config.php');
 
 echo "Users, roles, teams\n";
 $adminId = User::create(['email' => 'admin@example.org', 'type' => 'superadmin', 'status' => 'approved', 'is_sysadmin' => 1, 'first_name' => 'Admin']);
@@ -187,7 +204,6 @@ $r = MongoImporter::import('iera_reports', [['_id' => 'legacy-sub', 'type' => 'e
 check('legacy report', $r['imported'] === 1 && Report::find('rep-1')['submit']['chats'] === 3);
 
 echo "HTTP routing (in-process)\n";
-$app = \App\Core\App::boot();
 function http(string $method, string $path, array $post = [], ?string $uid = null): \App\Core\Response {
     global $app;
     $_SERVER['REQUEST_METHOD'] = $method; $_SERVER['REQUEST_URI'] = $path; $_POST = $post; $_GET = [];
@@ -210,6 +226,12 @@ $fresh = User::findByEmail('fresh@example.org');
 $otp = Otp::issue($fresh['id'], 'login', null);
 $r = http('POST', '/login/code', ['code' => $otp]);
 check('code step signs in and routes to registration', $r->status === 302 && str_contains($r->headers['Location'], '/register/volunteer'));
+http('POST', '/login/type', ['type' => 'volunteer']);
+$r = http('POST', '/login/email', ['email' => 'wizard@example.org']);
+check('password step offered to admin with password', str_contains($r->headers['Location'] ?? '', '/login/password'));
+$r = http('POST', '/login/password', ['password' => 'correct-horse-battery']);
+check('password sign-in works', $r->status === 302 && !str_contains($r->headers['Location'] ?? '', '/login'), $r->headers['Location'] ?? '');
+check('secret setting encrypted at rest', (function () { Setting::set('smtp_pass', 'hunter22'); $raw = \App\Core\DB::fetchColumn('SELECT value FROM settings WHERE setting_key = ?', ['smtp_pass']); return str_starts_with((string) $raw, 'enc:') && Setting::get('smtp_pass') === 'hunter22' && Setting::mail()['smtp']['pass'] === 'hunter22'; })());
 check('volunteer registration form renders', str_contains(http('GET', '/register/volunteer', [], $fresh['id'])->body, 'data-stepper'));
 check('vol dashboard', http('GET', '/dashboard', [], $volId)->status === 200);
 check('forbidden for non-lead', http('GET', '/events/planning', [], $volId)->status === 403);
@@ -236,6 +258,6 @@ check('health', http('GET', '/api/health')->status === 200);
 check('404', http('GET', '/nope', [], $volId)->status === 404);
 check('csrf enforced', (function () use ($volId) { $_SERVER['REQUEST_METHOD'] = 'POST'; $_SERVER['REQUEST_URI'] = '/vacations'; $_POST = ['from_date' => '2026-01-01']; $_SESSION['uid'] = $volId; \App\Core\Auth::refresh(); try { $ref = new ReflectionMethod(\App\Core\App::boot(), 'handle'); $ref->setAccessible(true); $ref->invoke(\App\Core\App::boot(), new \App\Core\Request()); return false; } catch (\App\Core\HttpException $e) { return $e->status === 419; } })());
 
-@unlink($dbFile);
+@unlink($dbFile); @unlink($dbFile . '.lock'); @unlink($dbFile . '.config.php');
 echo "\n$pass passed, $fail failed\n";
 exit($fail ? 1 : 0);

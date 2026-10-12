@@ -10,7 +10,7 @@
 <div class="grid-3" style="margin-top:16px">
 <?php foreach ($docs as $d): ?>
   <div class="card doc-card">
-    <div class="doc-icon">📘</div>
+    <div class="doc-icon"><?= icon('book', '', 36) ?></div>
     <div><h3><?= e($d['title']) ?></h3><p class="muted small"><?= e($d['desc']) ?></p><a class="btn btn-sm btn-primary" href="<?= e($base . rawurlencode($d['file'])) ?>" target="_blank" rel="noopener">View PDF</a></div>
   </div>
 <?php endforeach; ?>

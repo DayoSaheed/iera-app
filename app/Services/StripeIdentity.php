@@ -14,7 +14,12 @@ final class StripeIdentity
 {
     public static function enabled(): bool
     {
-        return Setting::bool('stripe_identity_enabled') && (bool) Config::get('stripe.enabled') && Config::get('stripe.secret_key');
+        return Setting::bool('stripe_identity_enabled') && self::secretKey() !== '';
+    }
+
+    private static function secretKey(): string
+    {
+        return (string) Setting::orConfig('stripe_secret_key', 'stripe.secret_key', '');
     }
 
     /**
@@ -67,7 +72,7 @@ final class StripeIdentity
     /** Verify the Stripe-Signature header and return the decoded event, or null. */
     public static function parseWebhook(string $payload, ?string $sigHeader): ?array
     {
-        $secret = (string) Config::get('stripe.webhook_secret');
+        $secret = (string) Setting::orConfig('stripe_webhook_secret', 'stripe.webhook_secret', '');
         if ($secret === '' || !$sigHeader) {
             return null;
         }
@@ -118,7 +123,7 @@ final class StripeIdentity
         $opts = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 25,
-            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . Config::get('stripe.secret_key')],
+            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . self::secretKey()],
         ];
         if ($method === 'POST') {
             $opts[CURLOPT_POST] = true;

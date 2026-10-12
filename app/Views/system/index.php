@@ -25,7 +25,7 @@
     <div class="card"><h2>Maintenance mode</h2><p class="small muted">When on, only system admins can use the app; everyone else sees the maintenance message (Settings → System).</p>
       <form method="post" action="<?= e(url('/system/maintenance')) ?>"><?= csrf_field() ?><input type="hidden" name="on" value="<?= $maintenance ? '0' : '1' ?>"><button class="btn <?= $maintenance ? 'btn-primary' : 'btn-danger' ?>"><?= $maintenance ? 'Turn maintenance mode off' : 'Turn maintenance mode on' ?></button></form></div>
     <div class="card"><h2>Backup and defaults</h2>
-      <div class="actions"><a class="btn" href="<?= e(url('/system/backup')) ?>">⬇ Download SQL backup</a>
+      <div class="actions"><a class="btn" href="<?= e(url('/system/backup')) ?>"><?= icon('download', '', 16) ?> Download SQL backup</a>
         <form method="post" action="<?= e(url('/system/seed')) ?>" class="inline"><?= csrf_field() ?><button class="btn btn-ghost">Load missing defaults</button></form>
         <form method="post" action="<?= e(url('/system/seed')) ?>" class="inline" data-confirm="Overwrite ALL settings, email templates and form templates with the defaults?"><?= csrf_field() ?><input type="hidden" name="overwrite" value="1"><button class="btn btn-ghost">Reset all to defaults</button></form></div>
       <p class="small muted" style="margin-top:8px">cPanel backups remain the primary backup. This download is a convenience export of all tables.</p></div>

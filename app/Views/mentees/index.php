@@ -9,7 +9,7 @@
         <td data-value="<?= e($m['created_at']) ?>"><?= e(fmt_date($m['created_at'])) ?></td>
         <td><?= e($m['first_name']) ?></td><td><?= e($m['last_name']) ?></td><td><?= e(\App\Models\User::phoneOf($m)) ?></td><td><?= e($m['email']) ?></td>
         <td><span class="badge badge-<?= e($m['status']) ?>"><?= e(\App\Models\User::statusLabel($m)) ?></span></td><td><?= e($m['city']) ?></td><td><?= e(ucfirst((string) $m['gender'])) ?></td>
-        <td><?php foreach ($m['assigned'] as $a): ?><span class="chip" title="<?= $a['accepted_at'] ? 'Accepted' : ($a['rejected_at'] ? 'Declined' : 'Pending') ?>"><?= e(trim($a['first_name'] . ' ' . $a['last_name'])) ?><?= $a['accepted_at'] ? ' ✓' : ($a['rejected_at'] ? ' ✕' : ' …') ?></span><?php endforeach; ?></td>
+        <td><?php foreach ($m['assigned'] as $a): ?><span class="chip" title="<?= $a['accepted_at'] ? 'Accepted' : ($a['rejected_at'] ? 'Declined' : 'Pending') ?>"><?= e(trim($a['first_name'] . ' ' . $a['last_name'])) ?><?= $a['accepted_at'] ? ' <span class="yes">accepted</span>' : ($a['rejected_at'] ? ' <span class="no">declined</span>' : ' <span class="muted">pending</span>') ?></span><?php endforeach; ?></td>
         <td class="actions">
           <?php if ($super): ?><a class="btn btn-sm" href="<?= e(url('/mentees/' . $m['id'] . '/assign?back=/mentees')) ?>">Assign</a><a class="btn btn-sm btn-ghost" href="<?= e(url('/admin/users/' . $m['id'] . '?back=/mentees')) ?>">Edit</a>
           <?php elseif ($mine && !$mine['accepted_at'] && !$mine['rejected_at']): ?>

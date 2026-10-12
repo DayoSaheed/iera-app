@@ -25,7 +25,7 @@ final class WebhookController extends Controller
     /** Fallback for hosts without cron: GET /cron/run?key=SECRET (configure an external pinger). */
     public function cron(Request $req): Response
     {
-        $secret = (string) Config::get('cron.secret');
+        $secret = (string) \App\Models\Setting::orConfig('cron_secret', 'cron.secret', '');
         if ($secret === '' || !hash_equals($secret, $req->str('key'))) {
             return $this->json(['error' => 'forbidden'], 403);
         }

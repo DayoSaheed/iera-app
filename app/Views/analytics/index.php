@@ -12,7 +12,7 @@ $qs = fn(array $o) => '?' . http_build_query(array_merge(['team' => $teamId, 'ye
     <select name="month" class="input" style="max-width:140px" data-autosubmit <?= !$year ? 'disabled' : '' ?>><option value="">Whole year</option><?php foreach ($months as $i => $m): ?><option value="<?= $i ?>" <?= $month === $i ? 'selected' : '' ?>><?= $m ?></option><?php endforeach; ?></select>
     <input type="hidden" name="metric" value="<?= e($metric) ?>">
     <span class="grow"></span>
-    <a class="btn btn-sm" href="<?= e(url('/analytics/export.csv' . $qs([]))) ?>">⬇ Monthly report (CSV)</a>
+    <a class="btn btn-sm" href="<?= e(url('/analytics/export.csv' . $qs([]))) ?>"><?= icon('download', '', 16) ?> Monthly report (CSV)</a>
   </form>
 </div>
 <div class="grid-4" style="margin-top:16px">

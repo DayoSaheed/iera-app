@@ -171,7 +171,7 @@
     toolbar.appendChild(sizeSel);
     const exportName = table.getAttribute('data-export');
     if (exportName) {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm'; b.textContent = '⬇ CSV';
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm'; b.textContent = 'CSV';
       b.addEventListener('click', () => {
         const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
         const lines = [headers.map(h => esc(h.textContent.trim())).join(',')];
@@ -214,10 +214,10 @@
       if (pages > 1) {
         const pager = document.createElement('div'); pager.className = 'pager';
         const mk = (label, p, dis) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm' + (p === page ? ' btn-primary' : ''); b.textContent = label; b.disabled = !!dis; b.addEventListener('click', () => { page = p; render(); }); return b; };
-        pager.appendChild(mk('‹', page - 1, page === 1));
+        pager.appendChild(mk('<', page - 1, page === 1));
         let lo = Math.max(1, page - 2), hi = Math.min(pages, lo + 4); lo = Math.max(1, hi - 4);
         for (let p = lo; p <= hi; p++) pager.appendChild(mk(String(p), p));
-        pager.appendChild(mk('›', page + 1, page === pages));
+        pager.appendChild(mk('>', page + 1, page === pages));
         foot.appendChild(pager);
       }
     }
@@ -261,7 +261,7 @@
             const a = document.createElement('a');
             a.className = 'cal-ev' + (ev.attending ? ' is-attending' : ''); a.style.background = ev.color;
             a.textContent = tf(ev.start) + ' ' + ev.team;
-            a.title = ev.title + '\n' + ev.team + '\n' + tf(ev.start) + ' – ' + tf(ev.end) + '\n' + (ev.description || '') + (ev.city ? '\n' + ev.city : '') + '\nMin participants: ' + ev.min + (ev.attending ? '\nYou are registered' : '');
+            a.title = ev.title + '\n' + ev.team + '\n' + tf(ev.start) + ' - ' + tf(ev.end) + '\n' + (ev.description || '') + (ev.city ? '\n' + ev.city : '') + '\nMin participants: ' + ev.min + (ev.attending ? '\nYou are registered' : '');
             a.href = (window.APP_BASE || '') + '/events/register/' + encodeURIComponent(ev.team_id);
             cell.appendChild(a);
           });

@@ -17,7 +17,12 @@ final class SharePointSync
 {
     public static function enabled(): bool
     {
-        return Setting::bool('sharepoint_sync_enabled') && (bool) Config::get('sharepoint.enabled') && Config::get('sharepoint.client_id');
+        return Setting::bool('sharepoint_sync_enabled') && self::cfg('ms_client_id', 'sharepoint.client_id') !== '';
+    }
+
+    private static function cfg(string $settingKey, string $configKey): string
+    {
+        return (string) Setting::orConfig($settingKey, $configKey, '');
     }
 
     public static function token(): string
@@ -26,7 +31,7 @@ final class SharePointSync
         if ($cached) {
             return $cached;
         }
-        $tenant = (string) Config::get('sharepoint.tenant_id');
+        $tenant = self::cfg('ms_tenant_id', 'sharepoint.tenant_id');
         $ch = curl_init("https://login.microsoftonline.com/$tenant/oauth2/v2.0/token");
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -34,8 +39,8 @@ final class SharePointSync
             CURLOPT_TIMEOUT => 20,
             CURLOPT_POSTFIELDS => http_build_query([
                 'grant_type' => 'client_credentials',
-                'client_id' => Config::get('sharepoint.client_id'),
-                'client_secret' => Config::get('sharepoint.client_secret'),
+                'client_id' => self::cfg('ms_client_id', 'sharepoint.client_id'),
+                'client_secret' => self::cfg('ms_client_secret', 'sharepoint.client_secret'),
                 'scope' => 'https://graph.microsoft.com/.default',
             ]),
         ]);
@@ -105,7 +110,7 @@ final class SharePointSync
                     'FromApp' => true,
                     'Report_x0020_ID' => $r['id'],
                 ];
-                $id = self::createItem((string) Config::get('sharepoint.street_dawah_site_id'), (string) Config::get('sharepoint.street_dawah_list_id'), $fields);
+                $id = self::createItem(self::cfg('sp_street_dawah_site_id', 'sharepoint.street_dawah_site_id'), self::cfg('sp_street_dawah_list_id', 'sharepoint.street_dawah_list_id'), $fields);
                 Report::markSynced($r['id'], $id);
                 $synced++;
             } catch (\Throwable $e) {
@@ -141,7 +146,7 @@ final class SharePointSync
                     'From_x0020_App' => true,
                     'Report_x0020_ID' => $r['id'],
                 ];
-                $id = self::createItem((string) Config::get('sharepoint.nm_tracker_site_id'), (string) Config::get('sharepoint.nm_tracker_list_id'), $fields);
+                $id = self::createItem(self::cfg('sp_nm_tracker_site_id', 'sharepoint.nm_tracker_site_id'), self::cfg('sp_nm_tracker_list_id', 'sharepoint.nm_tracker_list_id'), $fields);
                 Report::markSynced($r['id'], $id);
                 $synced++;
             } catch (\Throwable $e) {
