@@ -22,12 +22,12 @@ $rr = $editRegion ?? [];
 <div class="card">
   <div class="card-head"><h2>Leadership</h2><span class="grow"></span><span class="small muted"><?= count($assignments) ?> active assignment(s)</span></div>
   <div class="grid-3">
-    <?php foreach (['Super Admin', 'Global Volunteer Director', 'UK Volunteer Manager', 'Online Volunteer Manager'] as $role): ?>
+    <?php foreach (['Super Admin', 'International Volunteer Director', 'Canada Volunteer Manager', 'Online Volunteer Manager'] as $role): ?>
     <div class="stat plain"><div class="stat-label"><?= e($role) ?></div><?php if (empty($byRole[$role])): ?><div class="muted small" style="margin-top:6px">Unassigned</div><?php else: foreach ($byRole[$role] as $m): ?><div style="margin-top:6px"><strong><?= e($m['user_name'] ?: $m['user_email']) ?></strong><br><span class="small muted"><?= e($m['user_email']) ?></span></div><?php endforeach; endif; ?></div>
     <?php endforeach; ?>
   </div>
 </div>
-<?php foreach (['UK' => 'UK branch', 'Global' => 'Global branch'] as $branch => $label): $bt = array_filter($tops, fn($r) => $r['branch'] === $branch); if (!$bt) { continue; } ?>
+<?php foreach (['Canada' => 'Canada branch', 'Global' => 'International branch'] as $branch => $label): $bt = array_filter($tops, fn($r) => $r['branch'] === $branch); if (!$bt) { continue; } ?>
 <div class="card">
   <div class="card-head"><h2><?= e($label) ?></h2></div>
   <div class="grid-3">
@@ -77,7 +77,7 @@ $rr = $editRegion ?? [];
       <div class="field"><label>Name</label><input name="name" value="<?= e($rr['name'] ?? '') ?>" required></div>
       <div class="field"><label>Emoji / flag (optional)</label><input name="emoji" value="<?= e($rr['emoji'] ?? '') ?>" maxlength="10" style="max-width:120px"></div>
       <div class="field"><label>Parent region</label><select name="parent_id"><option value="">None (top level)</option><?php foreach ($tops as $t): ?><option value="<?= e($t['id']) ?>" <?= ($rr['parent_id'] ?? $parent) === $t['id'] ? 'selected' : '' ?>><?= e($t['name']) ?></option><?php endforeach; ?></select></div>
-      <div class="field"><label>Branch</label><select name="branch"><?php foreach (['Global', 'UK'] as $b): ?><option <?= ($rr['branch'] ?? 'Global') === $b ? 'selected' : '' ?>><?= $b ?></option><?php endforeach; ?></select><div class="field-hint">Sub-regions inherit the parent's branch.</div></div>
+      <div class="field"><label>Branch</label><select name="branch"><?php foreach (['Global', 'Canada'] as $b): ?><option <?= ($rr['branch'] ?? 'Global') === $b ? 'selected' : '' ?>><?= $b ?></option><?php endforeach; ?></select><div class="field-hint">Sub-regions inherit the parent's branch.</div></div>
       <div class="actions"><button class="btn btn-primary">Save region</button><a class="btn btn-ghost" href="<?= e(url('/admin/hierarchy?tab=regions')) ?>">Cancel</a></div>
     </form>
   </div>

@@ -106,6 +106,6 @@ Upload the new zip over the existing folder (never overwrite `config/config.php`
 
 ## Volunteer onboarding (iERA Connect)
 
-Volunteers now register through the iERA Connect application: pick Global, UK or Online on the sign-in screen, verify the email, complete the 60-second quick apply, then the five-stage onboarding (about you, journey, skills, signed agreement, activation with CV and ID uploads). UK applicants book an interview from the hub and declare GORAP training; reminders run from the scheduler.
+Volunteers now register through the iERA Connect application: pick Canada, Online or International on the sign-in screen, verify the email, complete the 60-second quick apply, then the five-stage onboarding (about you, journey, skills, signed agreement, activation with CV and ID uploads). Canadian applicants book an interview from the hub and declare GORAP training; reminders run from the scheduler.
 
 Configure the people who receive the alerts in **System Admin → Settings → Onboarding** (onboarding admin, interview scheduler, risk assessment processor, online manager, course links). Interview slots are created in **People → Interview calendar**. After uploading this version, open System Admin → Overview and click **Apply database updates**.

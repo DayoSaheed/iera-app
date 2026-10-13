@@ -5,7 +5,7 @@ $title = 'Review · ' . ($app['name'] ?: $app['email']);
 $active = 'cc-apps-all';
 $super = Auth::isSuperadmin($u);
 $sys = Auth::isSysadmin($u);
-$isUk = Application::isUk($app);
+$isCanada = Application::isCanada($app);
 $d = Application::displayStatus($app);
 $badge = fn(string $x) => ['New' => 'new', 'Under Review' => 'in_review', 'Approved' => 'approved', 'Onboarded' => 'completed', 'Waitlisted' => 'paused', 'Rejected' => 'rejected', 'Inactive' => 'inactive', 'pending' => 'pending', 'approved' => 'approved', 'rejected' => 'rejected'][$x] ?? 'default';
 $self = '/admin/applications/' . $app['id'];
@@ -14,8 +14,8 @@ $tabUrl = fn(string $t) => url($self . '?tab=' . $t);
 $yn = fn($v) => $v === null ? '—' : ($v ? 'Yes' : 'No');
 $list = fn(array $v) => $v ? e(implode(', ', $v)) : '—';
 $docLink = fn(?array $doc) => $doc ? '<a href="' . e(url('/documents/' . $doc['id'])) . '" target="_blank">' . e($doc['filename']) . '</a> <span class="small muted">' . e(fmt_datetime($doc['created_at'])) . '</span>' : '<span class="muted">Not uploaded</span>';
-$ukRoles = Application::ukRoles($app);
-$certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) => Application::UK_ROLE_CERT[$r] ?? null, $ukRoles), array_keys($app['certs'])))));
+$canadaRoles = Application::canadaRoles($app);
+$certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) => Application::CA_ROLE_CERT[$r] ?? null, $canadaRoles), array_keys($app['certs'])))));
 ?>
 <div class="hero">
   <div>
@@ -54,9 +54,9 @@ $certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) 
     </form>
   </div>
   <div class="actions" style="margin-top:4px">
-    <?php if ($isUk): ?>
+    <?php if ($isCanada): ?>
       <?php if (empty($app['onboarded_approved'])): ?>
-        <form method="post" action="<?= $act ?>" data-confirm="Approve this volunteer as fully onboarded? They move to the UK onboarded list."><?= csrf_field() ?><input type="hidden" name="action" value="onboarded"><input type="hidden" name="value" value="1"><button class="btn btn-sm btn-accent" <?= ($gateBlocked || $raPending) ? 'disabled title="Complete the risk assessment and approve every applied role first"' : '' ?>><?= icon('user-check', '', 14) ?> Approve as onboarded</button></form>
+        <form method="post" action="<?= $act ?>" data-confirm="Approve this volunteer as fully onboarded? They move to the Onboarded list."><?= csrf_field() ?><input type="hidden" name="action" value="onboarded"><input type="hidden" name="value" value="1"><button class="btn btn-sm btn-accent" <?= ($gateBlocked || $raPending) ? 'disabled title="Complete the risk assessment and approve every applied role first"' : '' ?>><?= icon('user-check', '', 14) ?> Approve as onboarded</button></form>
         <?php if ($gateBlocked): ?><span class="small muted">Approve each applied role below first.</span><?php elseif ($raPending): ?><span class="small muted">Risk assessment still pending.</span><?php endif; ?>
       <?php else: ?>
         <form method="post" action="<?= $act ?>" data-confirm="Move this volunteer back to Applications?"><?= csrf_field() ?><input type="hidden" name="action" value="onboarded"><input type="hidden" name="value" value="0"><button class="btn btn-sm btn-ghost">Move back to applications</button></form>
@@ -90,7 +90,7 @@ $certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) 
         <?php foreach ([['agreementsDone', 'Volunteer agreement signed', $app['agreement_signed_at'] ? 'Signed ' . fmt_datetime($app['agreement_signed_at']) . ' (v' . $app['agreement_version'] . ')' : 'Not yet signed'], ['idsDone', 'ID documents uploaded', Application::eventsOnly($app) ? 'Not required (events-only role)' : ($readiness['idsDone'] ? 'Both documents on file · ' . ($app['id_verification_status'] ?: 'pending') : 'Waiting for upload')], ['cvDone', 'CV uploaded', Application::cvRequired($app) ? 'Required for this category' : 'Optional'], ['onboardingDone', 'Onboarding wizard completed', 'Stage ' . $app['onboarding_stage'] . ' of 5' . ($app['submitted_at'] ? ' · submitted ' . fmt_datetime($app['submitted_at']) : '')]] as [$k, $label, $sub]): ?>
         <li style="display:flex;gap:10px;align-items:flex-start;justify-content:flex-start"><span style="color:<?= $readiness[$k] ? 'var(--success)' : 'var(--muted)' ?>"><?= icon($readiness[$k] ? 'check-circle' : 'circle', '', 18) ?></span><span><strong><?= e($label) ?></strong><br><span class="small muted"><?= e($sub) ?></span></span></li>
         <?php endforeach; ?>
-        <?php if ($isUk): ?>
+        <?php if ($isCanada): ?>
         <li style="display:flex;gap:10px;align-items:flex-start;justify-content:flex-start"><span style="color:<?= $app['interview_status'] === 'completed' && $app['interview_outcome'] === 'passed' ? 'var(--success)' : 'var(--muted)' ?>"><?= icon($app['interview_status'] === 'completed' && $app['interview_outcome'] === 'passed' ? 'check-circle' : 'circle', '', 18) ?></span><span><strong>Interview</strong><br><span class="small muted"><?= e(start_case($app['interview_status'])) ?><?= $app['interview_status'] === 'completed' ? ' · ' . e($app['interview_outcome']) : '' ?><?= $booked ? ' · booked ' . e(fmt_date($booked['slot_date'])) . ' ' . e($booked['slot_time']) : '' ?></span></span></li>
         <?php if (Application::riskAssessmentRequired($app)): ?><li style="display:flex;gap:10px;align-items:flex-start;justify-content:flex-start"><span style="color:<?= Application::riskAssessmentDone($app) ? 'var(--success)' : 'var(--muted)' ?>"><?= icon(Application::riskAssessmentDone($app) ? 'check-circle' : 'circle', '', 18) ?></span><span><strong>Risk assessment</strong><br><span class="small muted"><?= e($app['risk_assessment_status']) ?> · stage <?= e($app['risk_assessment_stage']) ?></span></span></li><?php endif; ?>
         <?php endif; ?>
@@ -105,24 +105,24 @@ $certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) 
           <div class="field"><label>Country</label><input name="country" value="<?= e($app['country']) ?>"></div>
           <div class="field"><label>City</label><input name="city" value="<?= e($app['city']) ?>"></div>
           <div class="field"><label>Town</label><input name="town" value="<?= e($app['town']) ?>"></div>
-          <div class="field"><label>Postcode</label><input name="postal_code" value="<?= e($app['postal_code']) ?>"></div>
+          <div class="field"><label>Postal code</label><input name="postal_code" value="<?= e($app['postal_code']) ?>"></div>
         </div>
         <button class="btn btn-sm">Save contact details</button>
       </form>
     </div>
-    <?php if ($isUk): ?>
+    <?php if ($isCanada): ?>
     <div class="card">
-      <div class="card-head"><h2>UK role approvals</h2><span class="grow"></span><span class="small muted">Approve each role the volunteer applied for.</span></div>
-      <?php if (!$ukRoles): ?><p class="muted small">No UK roles selected yet.</p><?php else: ?>
-      <ul class="check-list"><?php foreach ($ukRoles as $role): $ok = in_array($role, $app['onboarding_approved_roles'], true); ?>
-        <li style="display:flex;gap:10px;align-items:center"><span class="chip"><?= e(Application::UK_ROLE_ABBR[$role] ?? '') ?></span><strong style="flex:1"><?= e($role) ?></strong>
+      <div class="card-head"><h2>Role approvals</h2><span class="grow"></span><span class="small muted">Approve each role the volunteer applied for.</span></div>
+      <?php if (!$canadaRoles): ?><p class="muted small">No roles selected yet.</p><?php else: ?>
+      <ul class="check-list"><?php foreach ($canadaRoles as $role): $ok = in_array($role, $app['onboarding_approved_roles'], true); ?>
+        <li style="display:flex;gap:10px;align-items:center"><span class="chip"><?= e(Application::CA_ROLE_ABBR[$role] ?? '') ?></span><strong style="flex:1"><?= e($role) ?></strong>
           <?php if ($ok): ?><span class="badge badge-approved">Approved</span><?php endif; ?>
           <form method="post" action="<?= $act ?>"><?= csrf_field() ?><input type="hidden" name="action" value="role"><input type="hidden" name="role" value="<?= e($role) ?>"><input type="hidden" name="value" value="<?= $ok ? '0' : '1' ?>"><button class="btn btn-sm <?= $ok ? 'btn-ghost' : 'btn-primary' ?>"><?= $ok ? 'Revoke' : 'Approve role' ?></button></form></li>
       <?php endforeach; ?></ul>
       <?php endif; ?>
       <details style="margin-top:12px"><summary class="small" style="cursor:pointer">Add or remove roles</summary>
         <form method="post" action="<?= $act ?>" style="margin-top:8px"><?= csrf_field() ?><input type="hidden" name="action" value="manage_roles">
-          <div class="choices"><?php foreach (Application::UK_ROLE_ABBR as $role => $ab): ?><label class="check"><input type="checkbox" name="roles[]" value="<?= e($role) ?>" <?= in_array($role, $ukRoles, true) ? 'checked' : '' ?>> <?= e($role) ?></label><?php endforeach; ?></div>
+          <div class="choices"><?php foreach (Application::CA_ROLE_ABBR as $role => $ab): ?><label class="check"><input type="checkbox" name="roles[]" value="<?= e($role) ?>" <?= in_array($role, $canadaRoles, true) ? 'checked' : '' ?>> <?= e($role) ?></label><?php endforeach; ?></div>
           <div class="field-hint">Newly added roles are approved immediately and the volunteer receives the role welcome email.</div>
           <button class="btn btn-sm">Save roles</button>
         </form>
@@ -170,7 +170,7 @@ $certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) 
     <div class="card"><h2>Skills &amp; availability</h2><dl class="kv">
       <dt>Skills</dt><dd><?= $list($app['skills']) ?><?= $app['custom_skill'] ? ' · ' . e($app['custom_skill']) : '' ?></dd>
       <dt>Roles</dt><dd><?= $list($app['role_interests']) ?></dd>
-      <?php if ($isUk): ?><dt>Approved roles</dt><dd><?= $list($app['onboarding_approved_roles']) ?></dd><?php endif; ?>
+      <?php if ($isCanada): ?><dt>Approved roles</dt><dd><?= $list($app['onboarding_approved_roles']) ?></dd><?php endif; ?>
       <dt>Hours / week</dt><dd><?= e($app['hours_per_week'] ?: '—') ?> · weekly commitment: <?= $yn($app['weekly_commitment']) ?></dd>
       <dt>Preferred days</dt><dd><?= $list($app['preferred_days']) ?></dd>
       <dt>Social media</dt><dd><?php if ($app['no_social_media']): ?>None<?php elseif ($app['social_media']): foreach ($app['social_media'] as $k => $v): if (!$v) { continue; } ?><span class="chip"><?= e((Application::SOCIAL[$k][0] ?? $k) . ': ' . $v) ?></span><?php endforeach; else: ?>—<?php endif; ?></dd>
@@ -223,7 +223,7 @@ $certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) 
       <details style="margin-top:10px"><summary class="small" style="cursor:pointer">Show agreement text as signed</summary><div class="field-copy" style="margin-top:8px;max-height:320px;overflow:auto;white-space:pre-wrap"><?= e($signature['agreement_text_snapshot']) ?></div></details>
       <?php else: ?><p class="muted">Not signed yet.</p><?php endif; ?>
     </div>
-    <?php if ($isUk): ?>
+    <?php if ($isCanada): ?>
     <div class="card">
       <div class="card-head"><h2>Training &amp; certificates</h2></div>
       <?php if (Application::hasRole($app, 'Street Dawah') || Application::hasRole($app, 'Exhibitions')): ?>
@@ -246,7 +246,7 @@ $certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) 
     <?php endif; ?>
   </div>
   <div class="card-stack">
-    <?php if ($isUk): ?>
+    <?php if ($isCanada): ?>
     <div class="card">
       <div class="card-head"><h2>Interview</h2><span class="grow"></span><a class="small" href="<?= e(url('/admin/interviews?open=' . $app['id'])) ?>">Open in interview list</a></div>
       <?php if ($booked): ?><div class="flash flash-info" style="margin-bottom:12px">Booked slot: <strong><?= e(fmt_date($booked['slot_date'])) ?> at <?= e($booked['slot_time']) ?></strong> (<?= (int) $booked['duration_minutes'] ?> min)</div><?php endif; ?>
@@ -293,7 +293,7 @@ $certKeys = array_values(array_unique(array_filter(array_merge(array_map(fn($r) 
     </div>
     <?php endif; ?>
     <?php else: ?>
-    <div class="card"><h2>Interview</h2><p class="small muted">Interviews and risk assessments apply to UK volunteers. Global and Online volunteers are approved from the Decisions panel once their documents are in order.</p></div>
+    <div class="card"><h2>Interview</h2><p class="small muted">Interviews and risk assessments apply to Canadian volunteers. Global and Online volunteers are approved from the Decisions panel once their documents are in order.</p></div>
     <?php endif; ?>
   </div>
 </div>

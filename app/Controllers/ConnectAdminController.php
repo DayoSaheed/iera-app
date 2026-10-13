@@ -54,7 +54,7 @@ final class ConnectAdminController extends Controller
         $stats = [
             'total' => count($apps), 'new_week' => $count(fn($a) => $a['created_at'] >= $week), 'approved' => $count(fn($a) => $a['status'] === 'Approved'),
             'pending' => $count(fn($a) => in_array($a['status'], ['New', 'Under Review'], true)), 'global' => $count(fn($a) => $a['volunteer_category'] === 'Global'),
-            'uk' => $count(fn($a) => $a['volunteer_category'] === 'UK'), 'online' => $count(fn($a) => $a['volunteer_category'] === 'Online'),
+            'uk' => $count(fn($a) => $a['volunteer_category'] === 'Canada'), 'online' => $count(fn($a) => $a['volunteer_category'] === 'Online'),
             'hours' => (float) DB::fetchColumn('SELECT COALESCE(SUM(hours),0) FROM volunteer_reports'), 'completions' => (int) DB::fetchColumn('SELECT COUNT(*) FROM training_completions'),
             'awards' => (int) DB::fetchColumn('SELECT COUNT(*) FROM training_awards'), 'stories' => (int) DB::fetchColumn('SELECT COUNT(*) FROM stories'),
             'feedback' => (int) DB::fetchColumn('SELECT COUNT(*) FROM feedback_reports'), 'events' => (int) DB::fetchColumn('SELECT COUNT(*) FROM community_events'),
@@ -71,12 +71,12 @@ final class ConnectAdminController extends Controller
     public function applications(Request $req): Response
     {
         $u = $this->user();
-        $mode = in_array($req->str('mode'), ['applicants', 'uk_onboarded', 'old_rejected'], true) ? $req->str('mode') : 'applicants';
+        $mode = in_array($req->str('mode'), ['applicants', 'onboarded', 'old_rejected'], true) ? $req->str('mode') : 'applicants';
         $all = Application::list([], 'a.created_at DESC', 5000);
         $rows = array_values(array_filter($all, fn($a) => match ($mode) {
-            'uk_onboarded' => Application::isUk($a) && !in_array($a['status'], ['Rejected', 'Inactive'], true) && empty($a['is_inactive']) && (!empty($a['onboarded_approved']) || $a['onboarding_approved_roles']),
+            'onboarded' => Application::isCanada($a) && !in_array($a['status'], ['Rejected', 'Inactive'], true) && empty($a['is_inactive']) && (!empty($a['onboarded_approved']) || $a['onboarding_approved_roles']),
             'old_rejected' => !empty($a['is_inactive']) || in_array($a['status'], ['Rejected', 'Inactive'], true),
-            default => empty($a['is_inactive']) && !(Application::isUk($a) && Application::onboardingComplete($a)),
+            default => empty($a['is_inactive']) && !(Application::isCanada($a) && Application::onboardingComplete($a)),
         }));
         $counts = [];
         foreach ($rows as $a) {
@@ -91,7 +91,7 @@ final class ConnectAdminController extends Controller
         $flagged = $req->get('flagged') === '1';
         $filtered = array_values(array_filter($rows, function ($a) use ($status, $cat, $q, $focus, $attention, $flagged, $mode) {
             if ($focus) { return $a['id'] === $focus; }
-            if ($mode === 'applicants' && Application::isUk($a) && $a['status'] === 'Inactive' && $status !== 'Inactive') { return false; }
+            if ($mode === 'applicants' && Application::isCanada($a) && $a['status'] === 'Inactive' && $status !== 'Inactive') { return false; }
             if ($status && Application::displayStatus($a) !== $status) { return false; }
             if ($cat && $a['volunteer_category'] !== $cat) { return false; }
             if ($q && stripos($a['name'] . ' ' . $a['email'] . ' ' . $a['country'] . ' ' . $a['city'] . ' ' . $a['phone'], $q) === false) { return false; }
@@ -137,7 +137,7 @@ final class ConnectAdminController extends Controller
             'u' => $u, 'app' => $app, 'docs' => $docs, 'certDocs' => $certDocs, 'stats' => $stats,
             'notes' => Application::notes($app['id']), 'signature' => Onboarding::signature($app['id']),
             'blockers' => AdminReview::approvalBlockers($app), 'readiness' => AdminReview::readiness($app), 'issues' => AdminReview::dataQualityIssues($app),
-            'gateBlocked' => AdminReview::onboardGateBlocked($app), 'raPending' => Application::isUk($app) && empty($app['onboarded_approved']) && Application::riskAssessmentRequired($app) && !Application::riskAssessmentDone($app),
+            'gateBlocked' => AdminReview::onboardGateBlocked($app), 'raPending' => Application::isCanada($app) && empty($app['onboarded_approved']) && Application::riskAssessmentRequired($app) && !Application::riskAssessmentDone($app),
             'tab' => in_array($req->str('tab'), ['overview', 'profile', 'onboarding', 'activity'], true) ? $req->str('tab') : 'overview',
             'reports' => Gamification::reports($app['user_id'], 12), 'target' => User::find($app['user_id']),
             'participation' => DB::fetchAll('SELECT * FROM participation_logs WHERE application_id = ? ORDER BY task_date DESC', [$app['id']]),
@@ -332,13 +332,13 @@ final class ConnectAdminController extends Controller
 
     // ---- interviews --------------------------------------------------------------------
 
-    private static function ukCountry(array $a): bool
+    private static function canadaCountry(array $a): bool
     {
         $c = strtolower((string) ($a['country'] ?? ''));
         if ($c === '') {
             return true;
         }
-        foreach (['united kingdom', 'uk', 'england', 'scotland', 'wales', 'northern ireland'] as $k) {
+        foreach (['canada', 'ca'] as $k) {
             if (str_contains($c, $k)) {
                 return true;
             }
@@ -348,7 +348,7 @@ final class ConnectAdminController extends Controller
 
     public function interviews(Request $req): Response
     {
-        $all = array_values(array_filter(Application::list(['category' => 'UK'], 'a.created_at DESC', 5000), fn($a) => self::ukCountry($a)));
+        $all = array_values(array_filter(Application::list(['category' => 'Canada'], 'a.created_at DESC', 5000), fn($a) => self::canadaCountry($a)));
         $inPlay = array_values(array_filter($all, fn($a) => !in_array($a['status'], ['Approved', 'Rejected'], true) && !($a['interview_status'] === 'completed' && $a['interview_outcome'] === 'passed') && ($a['interview_status'] !== 'not_scheduled' || AdminReview::readiness($a)['ready'])));
         $tabs = [
             'to_interview' => array_values(array_filter($inPlay, fn($a) => $a['interview_status'] === 'not_scheduled')),
@@ -428,7 +428,7 @@ final class ConnectAdminController extends Controller
             return $this->view('admin_connect/restricted', ['u' => $u, 'what' => 'risk assessment reviewers']);
         }
         $registered = array_flip(array_map('strtolower', array_column(DB::fetchAll("SELECT email FROM users WHERE type = 'superadmin' OR id IN (SELECT user_id FROM user_roles)"), 'email')));
-        $all = array_values(array_filter(Application::list(['category' => 'UK'], 'a.created_at DESC', 5000), fn($a) => self::ukCountry($a) && (Onboarding::raProcessed($a) || (!in_array($a['status'], ['Approved', 'Rejected'], true) && Onboarding::raQualifies($a) && !isset($registered[strtolower($a['email'])])))));
+        $all = array_values(array_filter(Application::list(['category' => 'Canada'], 'a.created_at DESC', 5000), fn($a) => self::canadaCountry($a) && (Onboarding::raProcessed($a) || (!in_array($a['status'], ['Approved', 'Rejected'], true) && Onboarding::raQualifies($a) && !isset($registered[strtolower($a['email'])])))));
         $tabs = [];
         foreach (['Requested', 'Started', 'To Approval', 'Passed', 'Failed'] as $st) {
             $tabs[$st] = array_values(array_filter($all, fn($a) => ($a['risk_assessment_stage'] ?: 'Requested') === $st));
@@ -439,11 +439,11 @@ final class ConnectAdminController extends Controller
         return $this->view('admin_connect/risk', ['tabs' => $tabs, 'tab' => $tab, 'rows' => $rows, 'q' => $q, 'open' => $req->str('open') ? Application::find($req->str('open')) : null]);
     }
 
-    // ---- UK admin volunteers ------------------------------------------------------------------
+    // ---- admin volunteers ------------------------------------------------------------------
 
-    public function ukAdmin(Request $req): Response
+    public function adminVolunteers(Request $req): Response
     {
-        $admins = array_values(array_filter(Application::list(['category' => 'UK'], 'a.created_at DESC', 5000), fn($a) => in_array('Administration', $a['onboarding_approved_roles'], true) || Application::hasRole($a, 'Administration') || Application::certStatus($a, 'admin') === 'approved'));
+        $admins = array_values(array_filter(Application::list(['category' => 'Canada'], 'a.created_at DESC', 5000), fn($a) => in_array('Administration', $a['onboarding_approved_roles'], true) || Application::hasRole($a, 'Administration') || Application::certStatus($a, 'admin') === 'approved'));
         foreach ($admins as $a) {
             AdminReview::ensureAdminRecord($a);
         }
@@ -456,15 +456,15 @@ final class ConnectAdminController extends Controller
         if ($q) {
             $records = array_values(array_filter($records, fn($r) => stripos($byApp[$r['application_id']]['name'] . ' ' . $byApp[$r['application_id']]['email'], $q) !== false));
         }
-        return $this->view('admin_connect/uk_admin', ['records' => $records, 'apps' => $byApp, 'q' => $q, 'open' => $req->str('open')]);
+        return $this->view('admin_connect/admin_volunteers', ['records' => $records, 'apps' => $byApp, 'q' => $q, 'open' => $req->str('open')]);
     }
 
-    public function saveUkAdmin(Request $req): Response
+    public function saveAdminVolunteer(Request $req): Response
     {
         $r = DB::fetch('SELECT * FROM admin_volunteer_records WHERE id = ?', [$req->params['id']]) ?? $this->notFound();
         DB::update('admin_volunteer_records', ['task_pref' => $req->str('task_pref') ?: null, 'projects' => $req->str('projects') ?: null, 'task_history' => $req->str('task_history') ?: null, 'date_added_to_page' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $req->str('date_added_to_page')) ? $req->str('date_added_to_page') : null, 'skills' => $req->str('skills') ?: null, 'notes' => $req->str('notes') ?: null, 'updated_at' => now()], 'id = ?', [$r['id']]);
         Flash::success('Record saved.');
-        return $this->redirect('/admin/uk-admin');
+        return $this->redirect('/admin/admin-volunteers');
     }
 
     // ---- hierarchy ------------------------------------------------------------------------------
@@ -487,7 +487,7 @@ final class ConnectAdminController extends Controller
         $action = $req->str('action');
         if ($action === 'seed') {
             if (!DB::fetch('SELECT id FROM regions WHERE parent_id IS NULL')) {
-                $seed = ['UK' => ['UK', ['England', 'Scotland', 'Wales', 'Northern Ireland']], 'Africa' => ['Global', ['East Africa', 'West Africa', 'Southern Africa', 'Central Africa', 'North Africa']], 'Europe' => ['Global', ['Northern Europe', 'Western Europe', 'Southern Europe', 'Eastern Europe']], 'Asia & Oceania' => ['Global', ['South Asia', 'South-East Asia', 'East Asia', 'Middle East', 'Oceania']], 'USA' => ['Global', []], 'Canada' => ['Global', []], 'Latin America' => ['Global', []]];
+                $seed = ['Canada' => ['Canada', ['Ontario', 'Quebec', 'British Columbia', 'Alberta', 'Manitoba', 'Saskatchewan', 'Nova Scotia', 'New Brunswick', 'Newfoundland and Labrador', 'Prince Edward Island', 'Territories']], 'Africa' => ['Global', ['East Africa', 'West Africa', 'Southern Africa', 'Central Africa', 'North Africa']], 'Europe' => ['Global', ['Northern Europe', 'Western Europe', 'Southern Europe', 'Eastern Europe']], 'Asia & Oceania' => ['Global', ['South Asia', 'South-East Asia', 'East Asia', 'Middle East', 'Oceania']], 'USA' => ['Global', []], 'Canada' => ['Global', []], 'Latin America' => ['Global', []]];
                 foreach ($seed as $name => [$branch, $subs]) {
                     $id = Str::uuid();
                     DB::insert('regions', ['id' => $id, 'name' => $name, 'branch' => $branch, 'is_active' => 1, 'countries_json' => '[]', 'created_at' => now()]);
@@ -507,7 +507,7 @@ final class ConnectAdminController extends Controller
                 return $this->redirect('/admin/hierarchy?tab=regions');
             }
             $parent = $req->str('parent_id') ?: null;
-            $branch = in_array($req->str('branch'), ['UK', 'Global'], true) ? $req->str('branch') : 'Global';
+            $branch = in_array($req->str('branch'), ['Canada', 'Global'], true) ? $req->str('branch') : 'Global';
             if ($parent) {
                 $branch = DB::fetchColumn('SELECT branch FROM regions WHERE id = ?', [$parent]) ?: $branch;
             }

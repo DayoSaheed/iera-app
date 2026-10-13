@@ -84,7 +84,7 @@ final class DashboardController extends Controller
             ['Upload 2 ID documents', $app['id_verification_status'] === 'approved', '/upload-id', $app['id_verification_status'] === 'pending' ? 'under review' : null],
             ['Upload your CV', !empty($app['cv_doc_id']), '/upload-cv', null],
             ['GORAP Dawah Training completed', \App\Models\Application::gorapDone($app), '/training', null],
-            ['Onboarding interview', !empty($app['call_scheduled']) || $app['interview_status'] === 'completed', \App\Models\Application::isUk($app) ? '/book-interview' : null, \App\Models\Application::isUk($app) ? 'book now' : 'to be scheduled'],
+            ['Onboarding interview', !empty($app['call_scheduled']) || $app['interview_status'] === 'completed', \App\Models\Application::isCanada($app) ? '/book-interview' : null, \App\Models\Application::isCanada($app) ? 'book now' : 'to be scheduled'],
         ];
         $done = count(array_filter($checks, fn($c) => $c[1]));
         $stats = \App\Services\Gamification::stats($u['id'], $app);

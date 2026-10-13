@@ -1,9 +1,9 @@
 <?php
 use App\Models\Application;
 use App\Services\AdminReview;
-$titles = ['applicants' => 'All applications', 'uk_onboarded' => 'UK onboarded volunteers', 'old_rejected' => 'Old / rejected volunteers'];
+$titles = ['applicants' => 'All applications', 'onboarded' => 'Onboarded volunteers', 'old_rejected' => 'Old / rejected volunteers'];
 $title = $titles[$mode];
-$active = ['applicants' => 'cc-apps-all', 'uk_onboarded' => 'cc-apps-uk', 'old_rejected' => 'cc-apps-old'][$mode];
+$active = ['applicants' => 'cc-apps-all', 'onboarded' => 'cc-apps-onboarded', 'old_rejected' => 'cc-apps-old'][$mode];
 $super = \App\Core\Auth::isSuperadmin($u);
 $base = '/admin/applications?mode=' . $mode;
 $qs = fn(array $extra) => $base . '&' . http_build_query(array_filter(['status' => $status, 'category' => $category, 'q' => $q] + $extra, fn($v) => $v !== '' && $v !== null));
@@ -53,14 +53,14 @@ $badge = fn(string $d) => ['New' => 'new', 'Under Review' => 'in_review', 'Appro
   <?php if ($focus): ?><div class="flash flash-info">Showing one applicant: <strong><?= e($focus['name']) ?></strong>. <a href="<?= e(url($base)) ?>">Show everyone</a></div><?php endif; ?>
   <?php if (!$rows): ?><p class="empty">No applications match.</p><?php else: ?>
   <div class="table-wrap"><table class="data-table" data-table data-page-size="25" data-empty="No records.">
-    <thead><tr><th>Applied</th><th>Name</th><th data-filter>Category</th><th data-filter>Country</th><th>Roles</th><th>Readiness</th><th data-filter>Status</th><?php if ($mode === 'uk_onboarded'): ?><th>Onboarded</th><?php else: ?><th data-filter>Interview</th><?php endif; ?><th></th></tr></thead>
+    <thead><tr><th>Applied</th><th>Name</th><th data-filter>Category</th><th data-filter>Country</th><th>Roles</th><th>Readiness</th><th data-filter>Status</th><?php if ($mode === 'onboarded'): ?><th>Onboarded</th><?php else: ?><th data-filter>Interview</th><?php endif; ?><th></th></tr></thead>
     <tbody><?php foreach ($rows as $a): $r = AdminReview::readiness($a); $d = Application::displayStatus($a); $issues = AdminReview::dataQualityIssues($a); ?>
       <tr data-href="<?= e(url('/admin/applications/' . $a['id'])) ?>" class="row-link">
         <td data-value="<?= e($a['created_at']) ?>"><?= e(fmt_date($a['created_at'])) ?><br><span class="small muted">#<?= e(strtoupper(substr($a['id'], -6))) ?></span></td>
         <td><strong><?= e($a['name'] ?: '(no name)') ?></strong><?php if ($issues): ?> <span title="<?= e(implode('; ', $issues)) ?>" style="color:var(--primary)"><?= icon('flag', '', 14) ?></span><?php endif; ?><br><span class="small muted"><?= e($a['email']) ?></span></td>
         <td><?= e($a['volunteer_category']) ?></td>
         <td><?= e($a['country'] ?: '—') ?><?= $a['city'] ? '<br><span class="small muted">' . e($a['city']) . '</span>' : '' ?></td>
-        <td><?php if (Application::isUk($a)): foreach (Application::ukAbbrs($a) as $role => $ab): ?><span class="chip" title="<?= e($role) ?>" style="<?= in_array($role, $a['onboarding_approved_roles'], true) ? 'background:var(--accent-50);border-color:var(--accent)' : '' ?>"><?= e($ab) ?></span><?php endforeach; else: ?><span class="small"><?= e(implode(', ', array_slice($a['role_interests'], 0, 3)) ?: '—') ?></span><?php endif; ?></td>
+        <td><?php if (Application::isCanada($a)): foreach (Application::canadaAbbrs($a) as $role => $ab): ?><span class="chip" title="<?= e($role) ?>" style="<?= in_array($role, $a['onboarding_approved_roles'], true) ? 'background:var(--accent-50);border-color:var(--accent)' : '' ?>"><?= e($ab) ?></span><?php endforeach; else: ?><span class="small"><?= e(implode(', ', array_slice($a['role_interests'], 0, 3)) ?: '—') ?></span><?php endif; ?></td>
         <td class="small" style="white-space:nowrap">
           <span title="Agreements" style="color:<?= $r['agreementsDone'] ? 'var(--success)' : 'var(--muted)' ?>"><?= icon($r['agreementsDone'] ? 'check-circle' : 'circle', '', 15) ?></span>
           <span title="ID documents" style="color:<?= $r['idsDone'] ? 'var(--success)' : 'var(--muted)' ?>"><?= icon($r['idsDone'] ? 'check-circle' : 'circle', '', 15) ?></span>
@@ -69,7 +69,7 @@ $badge = fn(string $d) => ['New' => 'new', 'Under Review' => 'in_review', 'Appro
           <?= $r['ready'] ? '<span class="muted">ready</span>' : '<span class="muted">' . Application::completionPercent($a) . '%</span>' ?>
         </td>
         <td><span class="badge badge-<?= e($badge($d)) ?>"><?= e($d) ?></span></td>
-        <?php if ($mode === 'uk_onboarded'): ?><td data-value="<?= e($a['onboarded_date'] ?? '') ?>"><?= e(fmt_date($a['onboarded_date'] ?: $a['onboarded_approved_at'])) ?></td>
+        <?php if ($mode === 'onboarded'): ?><td data-value="<?= e($a['onboarded_date'] ?? '') ?>"><?= e(fmt_date($a['onboarded_date'] ?: $a['onboarded_approved_at'])) ?></td>
         <?php else: ?><td class="small"><?= e(['not_scheduled' => 'Not scheduled', 'scheduled' => 'Scheduled', 'completed' => 'Completed · ' . $a['interview_outcome']][$a['interview_status']] ?? $a['interview_status']) ?></td><?php endif; ?>
         <td><a class="btn btn-sm" href="<?= e(url('/admin/applications/' . $a['id'])) ?>">Review</a></td>
       </tr>

@@ -103,8 +103,8 @@ final class Onboarding
         if ($before['status'] !== $after['status']) {
             self::onStatusChanged($after);
         }
-        // Risk assessment qualification and outcome (UK)
-        if (Application::isUk($after)) {
+        // Risk assessment qualification and outcome (Canada)
+        if (Application::isCanada($after)) {
             self::checkRiskAssessment($before, $after);
         }
     }
@@ -399,7 +399,7 @@ final class Onboarding
             return ['ok' => false, 'errors' => $all];
         }
         $data = ['onboarding_stage' => 5, 'status' => 'New', 'submitted_at' => $app['submitted_at'] ?: now()];
-        if (Application::isUk($app) && !empty($app['id_doc_1_id']) && !empty($app['id_doc_2_id'])) {
+        if (Application::isCanada($app) && !empty($app['id_doc_1_id']) && !empty($app['id_doc_2_id'])) {
             $data['id_verification_status'] = $app['id_verification_status'] === 'approved' ? 'approved' : 'pending';
         }
         Application::update($app['id'], $data);
@@ -463,8 +463,8 @@ final class Onboarding
     /** @return array{ok:bool, error?:string, slot?:array} */
     public static function bookInterview(array $app, array $user, string $slotId): array
     {
-        if (!Application::isUk($app)) {
-            return ['ok' => false, 'error' => 'Interview booking is only available for UK applicants'];
+        if (!Application::isCanada($app)) {
+            return ['ok' => false, 'error' => 'Interview booking is only available for Canadian applicants'];
         }
         $slot = DB::fetch('SELECT * FROM interview_slots WHERE id = ?', [$slotId]);
         if (!$slot) {
@@ -482,7 +482,7 @@ final class Onboarding
         $c = self::contactVars();
         $date = fmt_date($slot['slot_date']);
         $time = $slot['slot_time'] . ' (' . $slot['duration_minutes'] . ' min)';
-        EmailService::send('connect_interview_booked_admin', self::interviewerEmail(), ['full_name' => $app['name'], 'email' => $app['email'], 'details' => self::table(['Date' => $date, 'Time' => $time, 'Category' => 'UK']), 'link' => self::link('/admin/interviews')]);
+        EmailService::send('connect_interview_booked_admin', self::interviewerEmail(), ['full_name' => $app['name'], 'email' => $app['email'], 'details' => self::table(['Date' => $date, 'Time' => $time, 'Category' => 'Canada']), 'link' => self::link('/admin/interviews')]);
         EmailService::send('connect_interview_booked', [$app['email']], $c + ['full_name' => $app['name'], 'date' => $date, 'time' => $slot['slot_time'], 'details' => self::table(['Date' => $date, 'Time' => $time, 'Format' => 'Online call'])]);
         Notification::push($app['user_id'], 'Your interview is booked', $date . ' at ' . $slot['slot_time'] . '. A member of the onboarding team will phone you then.', ['category' => 'application', 'icon' => 'calendar', 'type' => 'success', 'link' => '/book-interview']);
         AuditLog::log('interview.booked', 'application', $app['id'], ['slot' => $slotId], $user['id']);
@@ -504,15 +504,15 @@ final class Onboarding
         return DB::fetchAll("SELECT * FROM interview_slots WHERE status = 'available' AND slot_date BETWEEN ? AND ? ORDER BY slot_date, slot_time", [$fromDate, $toDate]);
     }
 
-    // ---- risk assessment (UK) ---------------------------------------------------
+    // ---- risk assessment (Canada) ---------------------------------------------------
 
-    private static function ukCountry(array $a): bool
+    private static function canadaCountry(array $a): bool
     {
         $c = strtolower((string) ($a['country'] ?? ''));
         if ($c === '') {
             return true;
         }
-        foreach (['united kingdom', 'uk', 'england', 'scotland', 'wales', 'northern ireland'] as $k) {
+        foreach (['canada', 'ca'] as $k) {
             if (str_contains($c, $k)) {
                 return true;
             }
@@ -522,10 +522,10 @@ final class Onboarding
 
     public static function raQualifies(array $a): bool
     {
-        if (!Application::isUk($a) || !self::ukCountry($a)) {
+        if (!Application::isCanada($a) || !self::canadaCountry($a)) {
             return false;
         }
-        $abbrs = Application::ukAbbrs($a);
+        $abbrs = Application::canadaAbbrs($a);
         if (array_intersect($abbrs, ['AD', 'FR', 'CC'])) {
             return $a['interview_status'] === 'completed' && $a['interview_outcome'] === 'passed';
         }
@@ -550,7 +550,7 @@ final class Onboarding
     private static function checkRiskAssessment(array $before, array $after): void
     {
         if (self::raQualifies($after) && !self::raQualifies($before) && !self::raProcessed($after) && empty($after['risk_assessment_notified_at'])) {
-            EmailService::send('connect_ra_qualified', self::raEmails(), ['full_name' => $after['name'], 'details' => self::table(['Applicant' => $after['name'], 'Email' => $after['email'], 'Roles' => implode(', ', Application::ukAbbrs($after)), 'City' => $after['city']]), 'link' => self::link('/admin/risk-assessments')]);
+            EmailService::send('connect_ra_qualified', self::raEmails(), ['full_name' => $after['name'], 'details' => self::table(['Applicant' => $after['name'], 'Email' => $after['email'], 'Roles' => implode(', ', Application::canadaAbbrs($after)), 'City' => $after['city']]), 'link' => self::link('/admin/risk-assessments')]);
             Application::update($after['id'], ['risk_assessment_notified_at' => now()], false);
         }
         if ($before['risk_assessment_outcome'] !== $after['risk_assessment_outcome'] && in_array($after['risk_assessment_outcome'], ['passed', 'failed'], true)) {
@@ -602,11 +602,11 @@ final class Onboarding
     public static function raReminders(): int
     {
         $cut = date('Y-m-d H:i:s', time() - 3 * 86400);
-        $rows = array_filter(Application::list(['category' => 'UK', 'inactive' => false, 'onboarded' => false]), fn($a) => !empty($a['risk_assessment_notified_at']) && $a['risk_assessment_notified_at'] <= $cut && empty($a['risk_assessment_reminder_sent_at']) && !in_array($a['status'], ['Rejected', 'Inactive'], true) && !self::raProcessed($a));
+        $rows = array_filter(Application::list(['category' => 'Canada', 'inactive' => false, 'onboarded' => false]), fn($a) => !empty($a['risk_assessment_notified_at']) && $a['risk_assessment_notified_at'] <= $cut && empty($a['risk_assessment_reminder_sent_at']) && !in_array($a['status'], ['Rejected', 'Inactive'], true) && !self::raProcessed($a));
         if (!$rows) {
             return 0;
         }
-        $list = '<ul>' . implode('', array_map(fn($a) => '<li><strong>' . e($a['name']) . '</strong> (' . e(implode(', ', Application::ukAbbrs($a))) . ') — notified ' . e(date('d/m', strtotime($a['risk_assessment_notified_at']))) . ', ' . (int) floor((time() - strtotime($a['risk_assessment_notified_at'])) / 86400) . ' day(s) ago</li>', $rows)) . '</ul>';
+        $list = '<ul>' . implode('', array_map(fn($a) => '<li><strong>' . e($a['name']) . '</strong> (' . e(implode(', ', Application::canadaAbbrs($a))) . ') — notified ' . e(date('d/m', strtotime($a['risk_assessment_notified_at']))) . ', ' . (int) floor((time() - strtotime($a['risk_assessment_notified_at'])) / 86400) . ' day(s) ago</li>', $rows)) . '</ul>';
         EmailService::send('connect_ra_reminder', self::raEmails(), ['count' => (string) count($rows), 'list' => $list, 'link' => self::link('/admin/risk-assessments')]);
         foreach ($rows as $a) {
             Application::update($a['id'], ['risk_assessment_reminder_sent_at' => now()], false);
@@ -614,11 +614,11 @@ final class Onboarding
         return count($rows);
     }
 
-    /** Weekly: UK and Online applicants with outstanding onboarding steps. */
+    /** Weekly: Canadian and Online applicants with outstanding onboarding steps. */
     public static function onboardingReminders(): int
     {
         $n = 0;
-        foreach (['UK', 'Online'] as $cat) {
+        foreach (['Canada', 'Online'] as $cat) {
             foreach (Application::list(['category' => $cat, 'status' => ['New', 'Under Review', 'Approved'], 'inactive' => false, 'onboarded' => false]) as $a) {
                 $items = [];
                 if (empty($a['cv_doc_id'])) {
@@ -630,7 +630,7 @@ final class Onboarding
                 if (empty($a['id_doc_1_id']) || empty($a['id_doc_2_id'])) {
                     $items[] = ['Upload your proof of ID', '/upload-id'];
                 }
-                if ($cat === 'UK') {
+                if ($cat === 'Canada') {
                     $nmm = Application::hasRole($a, 'New Muslim Mentor') && Application::certStatus($a, 'new_muslim') !== 'approved';
                     $gorap = array_intersect($a['role_interests'], ['Administration', 'Call Centre (Remotely)', 'Events', 'Exhibitions', 'Street Dawah']) && !Application::gorapDone($a);
                     if ($nmm || $gorap) {

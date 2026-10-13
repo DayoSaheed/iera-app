@@ -12,20 +12,20 @@ use App\Core\Str;
  */
 final class Application
 {
-    public const CATEGORIES = ['Global' => 'Volunteer (Global)', 'UK' => 'Volunteer (UK)', 'Online' => 'Volunteer (Online)'];
+    public const CATEGORIES = ['Canada' => 'Volunteer (Canada)', 'Online' => 'Volunteer (Online)', 'Global' => 'Volunteer (International)'];
     public const STATUSES = ['New', 'Under Review', 'Approved', 'Rejected', 'Waitlisted', 'Inactive'];
     public const JSON = ['skills', 'preferred_days', 'role_interests', 'languages', 'tags', 'onboarding_approved_roles', 'social_media', 'certs', 'communication_preferences'];
     public const BOOLS = ['is_18_plus', 'islamic_society_member', 'involved_in_dawah', 'previous_training', 'weekly_commitment', 'given_shahadah_before', 'no_social_media', 'agreed_to_terms', 'agreed_data_protection', 'agreed_conflict_of_interest', 'onboarded_approved', 'call_scheduled', 'mentor_agreement_agreed', 'nda_agreed', 'tour_restricted_seen', 'tour_full_seen', 'online_dawah_interest', 'is_inactive'];
 
     public const COUNTRIES = ['Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Australia', 'Austria', 'Bahrain', 'Bangladesh', 'Belgium', 'Bosnia and Herzegovina', 'Brazil', 'Brunei', 'Canada', 'China', 'Colombia', 'Denmark', 'Egypt', 'Ethiopia', 'Finland', 'France', 'Germany', 'Ghana', 'Greece', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Italy', 'Japan', 'Jordan', 'Kenya', 'Kuwait', 'Lebanon', 'Libya', 'Malaysia', 'Maldives', 'Mexico', 'Morocco', 'Netherlands', 'New Zealand', 'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palestine', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Russia', 'Saudi Arabia', 'Senegal', 'Singapore', 'Somalia', 'South Africa', 'South Korea', 'Spain', 'Sri Lanka', 'Sudan', 'Sweden', 'Switzerland', 'Syria', 'Tanzania', 'Thailand', 'Tunisia', 'Turkey', 'UAE', 'Uganda', 'United Kingdom', 'United States', 'Yemen'];
-    public const UK_UNIVERSITIES = ['University of Oxford', 'University of Cambridge', 'Imperial College London', 'UCL', "King's College London", 'London School of Economics', 'University of Edinburgh', 'University of Manchester', 'University of Birmingham', 'University of Leeds', 'University of Bristol', 'University of Glasgow', 'University of Sheffield', 'University of Southampton', 'University of Nottingham', 'Queen Mary University of London', 'University of Liverpool', 'University of Warwick', 'University of Leicester', 'University of Exeter', 'Cardiff University', 'University of East London', 'SOAS University of London', 'University of Westminster', 'Other'];
+    public const CA_UNIVERSITIES = ['University of Toronto', 'McGill University', 'University of British Columbia', 'University of Alberta', 'McMaster University', 'University of Waterloo', 'Western University', "Queen's University", 'University of Calgary', 'University of Ottawa', 'York University', 'Toronto Metropolitan University', 'Concordia University', 'Université de Montréal', 'Université Laval', 'Simon Fraser University', 'University of Victoria', 'Dalhousie University', 'University of Manitoba', 'University of Saskatchewan', 'Carleton University', 'University of Guelph', 'Wilfrid Laurier University', 'Brock University', 'Memorial University of Newfoundland', 'University of New Brunswick', 'Other'];
     public const SKILLS = ['Public Speaking', 'Street Dawah', 'Teaching', 'Social Media', 'Content Creation', 'Video Editing', 'Administration', 'Events / Logistics', 'Fundraising', 'Other'];
     public const ROLES_GLOBAL = ['Street Dawah', 'Events / Outreach', 'Online Dawah', 'New Muslim Support', 'Content / Media', 'Administration', 'Training & Teaching'];
     public const ROLES_ONLINE = ['Chat Agent', 'New Muslim Mentor', 'Admin Support'];
-    public const ROLES_UK = ['Administration', 'Call Centre (Remotely)', 'Events', 'Exhibitions', 'Fundraising', 'Street Dawah'];
-    public const UK_ROLE_ABBR = ['Administration' => 'AD', 'Call Centre (Remotely)' => 'CC', 'Events' => 'EV', 'Exhibitions' => 'EXH', 'Fundraising' => 'FR', 'New Muslim Mentor' => 'NMM', 'Street Dawah' => 'SD'];
-    /** UK role => certificate key in certs_json (null = no certificate for that role). */
-    public const UK_ROLE_CERT = ['Administration' => 'admin', 'Call Centre (Remotely)' => 'telesales', 'Events' => 'events', 'Exhibitions' => 'exhibitions', 'Fundraising' => null, 'Street Dawah' => 'street_dawah', 'New Muslim Mentor' => 'new_muslim'];
+    public const ROLES_CANADA = ['Administration', 'Call Centre (Remotely)', 'Events', 'Exhibitions', 'Fundraising', 'Street Dawah'];
+    public const CA_ROLE_ABBR = ['Administration' => 'AD', 'Call Centre (Remotely)' => 'CC', 'Events' => 'EV', 'Exhibitions' => 'EXH', 'Fundraising' => 'FR', 'New Muslim Mentor' => 'NMM', 'Street Dawah' => 'SD'];
+    /** Canadian role => certificate key in certs_json (null = no certificate for that role). */
+    public const CA_ROLE_CERT = ['Administration' => 'admin', 'Call Centre (Remotely)' => 'telesales', 'Events' => 'events', 'Exhibitions' => 'exhibitions', 'Fundraising' => null, 'Street Dawah' => 'street_dawah', 'New Muslim Mentor' => 'new_muslim'];
     public const CERT_LABELS = ['new_muslim' => 'New Muslim Mentor', 'street_dawah' => 'Street Dawah', 'online_dawah' => 'Online Chat Dawah', 'admin' => 'Admin Volunteer', 'admin_assistant' => 'Administration Assistant', 'telesales' => 'Admin Telesales', 'events' => 'Events Assistant', 'exhibitions' => 'Outreach – Exhibitions'];
     public const EXPERIENCE = ['No previous experience', 'Less than 6 months', '6-12 months', '1-3 years', '3+ years'];
     public const HOURS = ['1-2 hours', '3-5 hours', '5-10 hours', '10+ hours'];
@@ -180,7 +180,7 @@ final class Application
 
     // ---- derived helpers ----------------------------------------------
 
-    public static function isUk(array $a): bool { return $a['volunteer_category'] === 'UK'; }
+    public static function isCanada(array $a): bool { return $a['volunteer_category'] === 'Canada'; }
     public static function isOnline(array $a): bool { return $a['volunteer_category'] === 'Online'; }
     public static function hasRole(array $a, string $role): bool { return in_array($role, $a['role_interests'] ?? [], true); }
 
@@ -193,14 +193,14 @@ final class Application
     public static function isSubmitted(array $a): bool { return $a['onboarding_stage'] >= 5 && $a['submitted_at'] !== null; }
     public static function isApproved(array $a): bool { return $a['status'] === 'Approved'; }
 
-    /** UK applicants who only applied for Events are exempt from ID documents. */
+    /** Canadian applicants who only applied for Events are exempt from ID documents. */
     public static function eventsOnly(array $a): bool
     {
         $roles = $a['role_interests'] ?? [];
         return $roles && count(array_filter($roles, fn($r) => $r !== 'Events')) === 0;
     }
 
-    public static function idRequired(array $a): bool { return self::isUk($a) && !self::eventsOnly($a); }
+    public static function idRequired(array $a): bool { return self::isCanada($a) && !self::eventsOnly($a); }
 
     public static function cvRequired(array $a): bool
     {
@@ -217,7 +217,7 @@ final class Application
 
     public static function roleOptions(array $a): array
     {
-        return match ($a['volunteer_category']) { 'UK' => self::ROLES_UK, 'Online' => self::ROLES_ONLINE, default => self::ROLES_GLOBAL };
+        return match ($a['volunteer_category']) { 'Canada' => self::ROLES_CANADA, 'Online' => self::ROLES_ONLINE, default => self::ROLES_GLOBAL };
     }
 
     public static function gorapDone(array $a): bool
@@ -234,7 +234,7 @@ final class Application
 
     public static function riskAssessmentRequired(array $a): bool
     {
-        if (!self::isUk($a)) {
+        if (!self::isCanada($a)) {
             return false;
         }
         if (self::hasRole($a, 'Fundraising') || self::hasRole($a, 'Call Centre (Remotely)')) {
@@ -248,30 +248,30 @@ final class Application
         return false;
     }
 
-    /** Canonical UK roles among role_interests. */
-    public static function ukRoles(array $a): array
+    /** Canonical Canadian roles among role_interests. */
+    public static function canadaRoles(array $a): array
     {
-        return array_values(array_filter($a['role_interests'] ?? [], fn($r) => isset(self::UK_ROLE_ABBR[$r])));
+        return array_values(array_filter($a['role_interests'] ?? [], fn($r) => isset(self::CA_ROLE_ABBR[$r])));
     }
 
-    public static function ukAbbrs(array $a): array
+    public static function canadaAbbrs(array $a): array
     {
-        return array_map(fn($r) => self::UK_ROLE_ABBR[$r], self::ukRoles($a));
+        return array_map(fn($r) => self::CA_ROLE_ABBR[$r], self::canadaRoles($a));
     }
 
-    /** Appears on the UK onboarded list only when manually approved and each role approved or certified. */
+    /** Appears on the Onboarded list only when manually approved and each role approved or certified. */
     public static function onboardingComplete(array $a): bool
     {
         if (empty($a['onboarded_approved'])) {
             return false;
         }
-        $roles = self::ukRoles($a);
+        $roles = self::canadaRoles($a);
         $approved = $a['onboarding_approved_roles'] ?? [];
         if (!$roles || !$approved) {
             return true;
         }
         foreach ($roles as $r) {
-            $cert = self::UK_ROLE_CERT[$r] ?? null;
+            $cert = self::CA_ROLE_CERT[$r] ?? null;
             if (!in_array($r, $approved, true) && !($cert && self::certStatus($a, $cert) === 'approved')) {
                 return false;
             }
@@ -330,7 +330,7 @@ final class Application
     public static function errors(array $a, int $stage): array
     {
         $e = [];
-        $uk = self::isUk($a);
+        $uk = self::isCanada($a);
         $online = self::isOnline($a);
         $blank = fn($k) => trim((string) ($a[$k] ?? '')) === '';
         if ($stage === 1) {

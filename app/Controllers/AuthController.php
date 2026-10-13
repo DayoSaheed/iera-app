@@ -36,9 +36,9 @@ final class AuthController extends Controller
 
     /** Registration categories offered on the first step. key => [label, description, icon, type, position] */
     public const CATEGORIES = [
-        'global' => ['Volunteer (Global)', 'Field outreach and in-person events: community events, interfaith dialogue, new Muslim support, street dawah.', 'globe', 'volunteer', 'Global'],
-        'uk' => ['Volunteer (UK)', 'Campus and national activities: administration, call centre, events, exhibitions, fundraising, street dawah.', 'flag', 'volunteer', 'UK'],
+        'canada' => ['Volunteer (Canada)', 'In-person volunteering across Canada: administration, call centre, events, exhibitions, fundraising, street dawah.', 'flag', 'volunteer', 'Canada'],
         'online' => ['Volunteer (Online)', 'Digital dawah from anywhere: chat agent, new Muslim mentor, admin support.', 'message-square', 'volunteer', 'Online'],
+        'global' => ['Volunteer (International)', 'Volunteering from outside Canada: community events, interfaith dialogue, new Muslim support, street dawah.', 'globe', 'volunteer', 'Global'],
         'newmuslim' => ['New Muslim', 'Get connected with a mentor and free learning resources.', 'landmark', 'newmuslim', 'newmuslim'],
         'org' => ['Organization / Masjid', 'Partner with us and refer new Muslims for mentoring.', 'users', 'org', ''],
     ];

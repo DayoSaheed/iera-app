@@ -18,8 +18,8 @@
 <div class="section">
   <div class="section-head"><div class="section-title"><span class="section-num">2</span><h2>Volunteers by category</h2></div></div>
   <div class="stat-row">
-    <div class="stat primary"><div class="stat-label">Global</div><div class="stat-value"><?= $s['global'] ?></div><div class="stat-sub"><a href="<?= e(url('/admin/applications?category=Global')) ?>">Open list</a></div></div>
-    <div class="stat accent"><div class="stat-label">UK</div><div class="stat-value"><?= $s['uk'] ?></div><div class="stat-sub"><a href="<?= e(url('/admin/applications?category=UK')) ?>">Open list</a></div></div>
+    <div class="stat primary"><div class="stat-label">International</div><div class="stat-value"><?= $s['global'] ?></div><div class="stat-sub"><a href="<?= e(url('/admin/applications?category=Global')) ?>">Open list</a></div></div>
+    <div class="stat accent"><div class="stat-label">Canada</div><div class="stat-value"><?= $s['uk'] ?></div><div class="stat-sub"><a href="<?= e(url('/admin/applications?category=UK')) ?>">Open list</a></div></div>
     <div class="stat info"><div class="stat-label">Online</div><div class="stat-value"><?= $s['online'] ?></div><div class="stat-sub"><a href="<?= e(url('/admin/applications?category=Online')) ?>">Open list</a></div></div>
     <div class="stat plain"><div class="stat-label">Impact reports</div><div class="stat-value"><?= $s['reports'] ?></div><div class="stat-sub"><?= $s['completions'] ?> training completions · <?= $s['awards'] ?> awards</div></div>
     <div class="stat plain"><div class="stat-label">Community</div><div class="stat-value"><?= $s['posts'] ?></div><div class="stat-sub"><?= $s['events'] ?> events · <?= $s['stories'] ?> stories · <?= $s['feedback'] ?> feedback items</div></div>

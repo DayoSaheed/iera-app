@@ -31,7 +31,7 @@
     <div class="field"><label>Last Name</label><input name="last_name" value="<?= e($app['last_name']) ?>"></div>
     <div class="field"><label>Country</label><input name="country" list="countries" value="<?= e($app['country']) ?>"><datalist id="countries"><?php foreach (Application::COUNTRIES as $c): ?><option value="<?= e($c) ?>"><?php endforeach; ?></datalist></div>
     <div class="field"><label>City</label><input name="city" value="<?= e($app['city']) ?>"></div>
-    <?php if (Application::isUk($app)): ?><div class="field span-2"><label>University</label><input name="university" list="universities" value="<?= e($app['university']) ?>"><datalist id="universities"><?php foreach (Application::UK_UNIVERSITIES as $c): ?><option value="<?= e($c) ?>"><?php endforeach; ?></datalist></div><?php endif; ?>
+    <?php if (Application::isCanada($app)): ?><div class="field span-2"><label>University</label><input name="university" list="universities" value="<?= e($app['university']) ?>"><datalist id="universities"><?php foreach (Application::CA_UNIVERSITIES as $c): ?><option value="<?= e($c) ?>"><?php endforeach; ?></datalist></div><?php endif; ?>
   </div>
   <div class="field"><span class="field-label">Skills</span><div class="choices"><?php foreach (Application::SKILLS as $o): ?><label class="choice"><input type="checkbox" name="skills[]" value="<?= e($o) ?>" <?= in_array($o, $app['skills'], true) ? 'checked' : '' ?>> <?= e($o) ?></label><?php endforeach; ?></div></div>
   <div class="field"><label>Languages</label><input name="languages" value="<?= e(implode(', ', $app['languages'])) ?>" placeholder="English, Arabic, Urdu"><div class="field-hint">Comma-separated</div></div>

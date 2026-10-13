@@ -1,4 +1,4 @@
-<?php use App\Models\Application; $title = 'Application submitted'; $uk = Application::isUk($app); $training = array_intersect($app['role_interests'], ['Street Dawah', 'Exhibitions']); ?>
+<?php use App\Models\Application; $title = 'Application submitted'; $uk = Application::isCanada($app); $training = array_intersect($app['role_interests'], ['Street Dawah', 'Exhibitions']); ?>
 <div class="ob-narrow ob-center">
   <div class="ob-moon" style="background:var(--success);color:#fff"><?= icon('check', '', 34) ?></div>
   <h1>Application submitted!</h1>

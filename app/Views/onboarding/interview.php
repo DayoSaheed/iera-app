@@ -1,8 +1,8 @@
 <?php use App\Models\Application; $title = 'Book your interview'; $active = 'interview'; ?>
 <?php if (!$app): ?>
 <div class="card"><p>No application found.</p><a class="btn btn-primary" href="<?= e(url('/apply')) ?>">Apply to volunteer</a></div>
-<?php elseif (!Application::isUk($app)): ?>
-<div class="card"><p>Interview booking is only available for UK volunteer applicants.</p><a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>">Back to dashboard</a></div>
+<?php elseif (!Application::isCanada($app)): ?>
+<div class="card"><p>Interview booking is only available for Canadian volunteer applicants.</p><a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>">Back to dashboard</a></div>
 <?php elseif ($booked && $app['interview_status'] === 'scheduled'): ?>
 <div class="card" style="max-width:640px">
   <div class="all-clear" style="margin-bottom:14px"><?= icon('check-circle', '', 20) ?> Your interview is booked!</div>

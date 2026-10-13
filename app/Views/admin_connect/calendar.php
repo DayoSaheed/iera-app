@@ -18,7 +18,7 @@ foreach ($byDay as $list) { foreach ($list as $s) { $s['status'] === 'booked' ? 
       <span class="small muted"><?= $monthAvail ?> available · <?= $monthBooked ?> booked</span>
       <a class="btn btn-sm" href="<?= e(url('/admin/interview-calendar?month=' . $month . '&day=' . ($day ?: ($month === date('Y-m') ? $today : $first->format('Y-m-d'))))) ?>"><?= icon('plus', '', 14) ?> Add slots</a>
     </div>
-    <p class="small muted">Click a day to add or remove interview slots. UK applicants pick from available slots when they book their interview.</p>
+    <p class="small muted">Click a day to add or remove interview slots. Canadian applicants pick from available slots when they book their interview.</p>
     <div class="cal-grid">
       <?php foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dow): ?><div class="cal-dow"><?= $dow ?></div><?php endforeach; ?>
       <?php $cur = clone $start; for ($i = 0; $i < 42; $i++): $ymd = $cur->format('Y-m-d'); $slots = $byDay[$ymd] ?? []; $avail = count(array_filter($slots, fn($s) => $s['status'] === 'available')); $booked = count($slots) - $avail; ?>

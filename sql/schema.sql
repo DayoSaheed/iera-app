@@ -1033,6 +1033,6 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
   PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES ('0001_initial', UTC_TIMESTAMP()), ('0002_email_log_driver', UTC_TIMESTAMP()), ('0003_connect_core', UTC_TIMESTAMP()), ('0004_connect_applications', UTC_TIMESTAMP()), ('0005_connect_volunteer_area', UTC_TIMESTAMP()), ('0006_connect_admin', UTC_TIMESTAMP());
+INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES ('0001_initial', UTC_TIMESTAMP()), ('0002_email_log_driver', UTC_TIMESTAMP()), ('0003_connect_core', UTC_TIMESTAMP()), ('0004_connect_applications', UTC_TIMESTAMP()), ('0005_connect_volunteer_area', UTC_TIMESTAMP()), ('0006_connect_admin', UTC_TIMESTAMP()), ('0007_canada_localisation', UTC_TIMESTAMP());
 
 SET FOREIGN_KEY_CHECKS = 1;

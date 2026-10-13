@@ -1,4 +1,4 @@
-<?php use App\Models\Application; $title = 'Training'; $active = 'training'; $uk = $app && Application::isUk($app); $gorap = $app['gorap_training_completion'] ?? 'not_started'; $sdExh = $app && array_intersect($app['role_interests'], ['Street Dawah', 'Exhibitions']); ?>
+<?php use App\Models\Application; $title = 'Training'; $active = 'training'; $uk = $app && Application::isCanada($app); $gorap = $app['gorap_training_completion'] ?? 'not_started'; $sdExh = $app && array_intersect($app['role_interests'], ['Street Dawah', 'Exhibitions']); ?>
 <p class="muted" style="margin-top:-6px">Complete your Dawah training — certificates are only required for New Muslim Mentoring.</p>
 <?php if ($app): ?>
 <div class="card">

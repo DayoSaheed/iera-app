@@ -3,7 +3,7 @@ use App\Models\Application;
 $title = 'Onboarding · ' . Application::STAGES[$stage][0];
 $flash = $_SESSION['stage_flash'] ?? null; unset($_SESSION['stage_flash']);
 $flashText = [1 => 'Perfect, we have the basics. Keep going.', 2 => 'JazakAllah khair for sharing your background.', 3 => 'Great — we know exactly how to put you to good use.', 4 => 'Almost there — one final step.', 5 => 'You are all set. Welcome to the iERA volunteer family.'];
-$uk = Application::isUk($app); $online = Application::isOnline($app);
+$uk = Application::isCanada($app); $online = Application::isOnline($app);
 $v = fn(string $k) => e(old($k, (string) ($app[$k] ?? '')));
 $yn = function (string $k) use ($app) { $val = $app[$k]; $o = old($k, $val === null ? '' : ($val ? '1' : '0')); return $o; };
 $err = fn(string $k) => isset($errors[$k]) ? '<div class="field-error">' . e($errors[$k]) . '</div>' : '';

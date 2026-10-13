@@ -22,7 +22,7 @@ $docCard = function (string $slot, ?array $doc, string $label, string $hint, str
 <?php if ($uk): ?>
 <div class="card ob-card">
   <h2><?= icon('shield', '', 18) ?> ID & Proof of Address <?= $eventsOnly ? '<span class="muted small">(optional)</span>' : '<span class="req">*</span>' ?></h2>
-  <p class="small muted"><?= $eventsOnly ? "As an Events volunteer you don't need to submit ID documents to apply — you're welcome to upload them anyway if you'd like them verified." : 'As a UK volunteer we need to verify your identity before your application can be submitted. Please upload one proof of ID and one proof of address.' ?></p>
+  <p class="small muted"><?= $eventsOnly ? "As an Events volunteer you don't need to submit ID documents to apply — you're welcome to upload them anyway if you'd like them verified." : 'As a Canadian volunteer we need to verify your identity before your application can be submitted. Please upload one proof of ID and one proof of address.' ?></p>
   <?= $docCard('id_doc_1', $docs['id_doc_1'], 'Proof of ID' . ($eventsOnly ? '' : ' *'), 'Passport, driving licence, national ID card or biometric residence permit. JPG, PNG or PDF up to 10MB', 'image/*,.pdf') ?>
   <?= $docCard('id_doc_2', $docs['id_doc_2'], 'Proof of Address' . ($eventsOnly ? '' : ' *'), 'Utility bill, bank statement or council tax letter dated within the last 3 months. JPG, PNG or PDF up to 10MB', 'image/*,.pdf') ?>
   <?php if ($docs['id_doc_1'] && $docs['id_doc_2']): ?><div class="all-clear" style="margin-top:10px"><?= icon('check-circle', '', 18) ?> Both documents uploaded — will be submitted for verification</div><?php endif; ?>

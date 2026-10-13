@@ -8,7 +8,7 @@
   <div class="field"><label>Email Address</label><input value="<?= e($app['email']) ?>" disabled></div>
   <div class="field"><span class="field-label">Volunteer Type <span class="req">*</span></span>
     <div class="choice-cards">
-      <?php foreach (['Global' => ['Volunteer (Global)', 'globe', 'For international physical outreach campaigns, local community events, and translation work anywhere in the world.'], 'UK' => ['Volunteer (UK)', 'flag', 'For university outreach, local UK masjid initiatives, national iERA events, and UK-based physical programs.'], 'Online' => ['Volunteer (Online Chat)', 'message-square', 'For digital content creation, social media, graphic design, online mentoring, and remote administrative support.']] as $val => [$label, $ico, $tip]): ?>
+      <?php foreach (['Canada' => ['Volunteer (Canada)', 'flag', 'For university outreach, local masjid initiatives, national iERA Canada events, and in-person programs across Canada.'], 'Online' => ['Volunteer (Online Chat)', 'message-square', 'For digital content creation, social media, graphic design, online mentoring, and remote administrative support.'], 'Global' => ['Volunteer (International)', 'globe', 'For volunteers outside Canada: outreach campaigns, local community events, and translation work anywhere in the world.']] as $val => [$label, $ico, $tip]): ?>
       <label class="choice-card <?= $app['volunteer_category'] === $val ? 'is-selected' : '' ?>" title="<?= e($tip) ?>"><input type="radio" name="volunteer_category" value="<?= e($val) ?>" <?= $app['volunteer_category'] === $val ? 'checked' : '' ?> data-reload-on-change><span class="choice-icon"><?= icon($ico, '', 20) ?></span><span><strong><?= e($label) ?></strong><small><?= e($tip) ?></small></span></label>
       <?php endforeach; ?>
     </div>
@@ -38,8 +38,8 @@
 </section>
 <?php if ($uk): ?>
 <section class="ob-section">
-  <h2>UK Details</h2>
-  <div class="field"><label>University</label><input name="university" list="universities" value="<?= $v('university') ?>" placeholder="Search your university"><datalist id="universities"><?php foreach (Application::UK_UNIVERSITIES as $c): ?><option value="<?= e($c) ?>"><?php endforeach; ?></datalist></div>
+  <h2>Canada details</h2>
+  <div class="field"><label>University</label><input name="university" list="universities" value="<?= $v('university') ?>" placeholder="Search your university"><datalist id="universities"><?php foreach (Application::CA_UNIVERSITIES as $c): ?><option value="<?= e($c) ?>"><?php endforeach; ?></datalist></div>
   <div class="field<?= $cls('islamic_society_member') ?>"><span class="field-label">Part of an Islamic Society? <span class="req">*</span></span><div class="choices"><label class="choice"><input type="radio" name="islamic_society_member" value="1" <?= $yn('islamic_society_member') === '1' ? 'checked' : '' ?> data-toggle="society"> Yes</label><label class="choice"><input type="radio" name="islamic_society_member" value="0" <?= $yn('islamic_society_member') === '0' ? 'checked' : '' ?> data-toggle="society"> No</label></div><?= $err('islamic_society_member') ?></div>
   <div class="field<?= $cls('islamic_society_name') ?>" data-show-when="islamic_society_member=1"><label>Society Name <span class="req">*</span></label><input name="islamic_society_name" value="<?= $v('islamic_society_name') ?>"><?= $err('islamic_society_name') ?></div>
 </section>

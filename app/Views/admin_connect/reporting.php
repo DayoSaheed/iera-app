@@ -30,7 +30,7 @@
   <form class="table-toolbar" method="get" action="<?= e(url('/admin/reporting')) ?>"><input type="hidden" name="sort" value="<?= e($sort) ?>">
     <input class="input" name="q" value="<?= e($q) ?>" placeholder="Search volunteer…">
     <select name="status"><option value="" <?= $status === '' ? 'selected' : '' ?>>All statuses</option><?php foreach (\App\Models\Application::STATUSES as $s): ?><option <?= $status === $s ? 'selected' : '' ?>><?= e($s) ?></option><?php endforeach; ?></select>
-    <select name="category"><option value="">All categories</option><?php foreach (['Global', 'UK', 'Online'] as $c): ?><option <?= $category === $c ? 'selected' : '' ?>><?= $c ?></option><?php endforeach; ?></select>
+    <select name="category"><option value="">All categories</option><?php foreach (['Global', 'Canada', 'Online'] as $c): ?><option <?= $category === $c ? 'selected' : '' ?>><?= $c ?></option><?php endforeach; ?></select>
     <select name="risk"><option value="">All risk levels</option><?php foreach ($riskBadge as $k => [$l]): ?><option value="<?= $k ?>" <?= $risk === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select>
     <button class="btn btn-sm btn-dark">Filter</button><span class="small muted"><?= count($rows) ?> volunteer(s) shown</span>
   </form>

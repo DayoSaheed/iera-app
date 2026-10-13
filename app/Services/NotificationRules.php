@@ -14,7 +14,7 @@ use App\Models\User;
 final class NotificationRules
 {
     public const TRIGGERS = [
-        'category_global' => ['New Global volunteer', 'globe'], 'category_uk' => ['New UK volunteer', 'flag'], 'category_online' => ['New Online volunteer', 'globe'],
+        'category_global' => ['New International volunteer', 'globe'], 'category_canada' => ['New Canadian volunteer', 'flag'], 'category_online' => ['New Online volunteer', 'globe'],
         'issue_reported' => ['Issue / bug reported', 'alert-triangle'], 'profile_completed' => ['Profile completed', 'check-circle'],
         'training_completed' => ['Training completed', 'graduation-cap'], 'story_submitted' => ['Story submitted', 'book'], 'custom' => ['Custom rule', 'settings'],
     ];

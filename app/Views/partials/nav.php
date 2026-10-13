@@ -41,7 +41,7 @@ if ($me) {
         $items[] = $lock(['Leaderboard', '/leaderboard', 'leaderboard', 'trophy', 'Programs']);
         $items[] = $lock(['Messages', '/messages', 'messages', 'mail', 'Programs', null, $unreadDm]);
         $items[] = ['Stories', '/stories', 'stories', 'book', 'Programs'];
-        if (\App\Models\Application::isUk($application) && $complete && empty($application['call_scheduled'])) {
+        if (\App\Models\Application::isCanada($application) && $complete && empty($application['call_scheduled'])) {
             $items[] = ['Book your interview', '/book-interview', 'interview', 'calendar', 'Overview'];
         }
         $items[] = ['Settings', '/settings', 'settings-user', 'settings', 'Account'];
@@ -86,14 +86,14 @@ if ($me) {
             $items[] = ['Control centre', '/admin', 'cc', 'layout', 'People'];
             $items[] = ['Applications', null, 'cc-apps', 'clipboard', 'People', [
                 ['All applications', '/admin/applications', 'cc-apps-all'],
-                ['UK onboarded', '/admin/applications?mode=uk_onboarded', 'cc-apps-uk'],
-                ['Admin volunteers', '/admin/uk-admin', 'cc-ukadmin'],
+                ['Onboarded', '/admin/applications?mode=onboarded', 'cc-apps-onboarded'],
+                ['Admin volunteers', '/admin/admin-volunteers', 'cc-adminvol'],
                 ['Old / rejected', '/admin/applications?mode=old_rejected', 'cc-apps-old'],
             ]];
-            $items[] = ['UK volunteers', null, 'cc-uk', 'flag', 'People', [
-                ['Interviews UK', '/admin/interviews', 'cc-interviews'],
+            $items[] = ['Canadian volunteers', null, 'cc-canada', 'flag', 'People', [
+                ['Interviews', '/admin/interviews', 'cc-interviews'],
                 ['Interview calendar', '/admin/interview-calendar', 'cc-calendar'],
-                ['Risk assessments UK', '/admin/risk-assessments', 'cc-risk'],
+                ['Risk assessments', '/admin/risk-assessments', 'cc-risk'],
             ]];
             $items[] = ['Hierarchy', '/admin/hierarchy', 'cc-hierarchy', 'globe', 'People'];
             $items[] = ['Participation log', '/admin/participation-log', 'cc-participation', 'list', 'People'];

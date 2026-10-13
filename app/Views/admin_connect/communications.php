@@ -66,8 +66,8 @@ $base = '/admin/communications';
       <div class="help-box small" style="margin-bottom:12px">Bulk filter volunteers, then add individuals. Opt-out preferences are checked at send time per volunteer, so the delivered count may be lower.</div>
       <div class="grid-3">
         <div class="field"><label>Application status</label><select name="f_status" form="filterForm"><option value="">Any</option><?php foreach (['Approved', 'Under Review', 'New', 'Waitlisted'] as $s): ?><option <?= $f['status'] === $s ? 'selected' : '' ?>><?= $s ?></option><?php endforeach; ?></select></div>
-        <div class="field"><label>Category</label><select name="f_category" form="filterForm"><option value="">Any</option><?php foreach (['Global', 'UK', 'Online'] as $s): ?><option <?= $f['volunteer_category'] === $s ? 'selected' : '' ?>><?= $s ?></option><?php endforeach; ?></select></div>
-        <div class="field"><label>Country</label><input name="f_country" form="filterForm" value="<?= e($f['country']) ?>" placeholder="e.g. United Kingdom"></div>
+        <div class="field"><label>Category</label><select name="f_category" form="filterForm"><option value="">Any</option><?php foreach (['Global', 'Canada', 'Online'] as $s): ?><option <?= $f['volunteer_category'] === $s ? 'selected' : '' ?>><?= $s ?></option><?php endforeach; ?></select></div>
+        <div class="field"><label>Country</label><input name="f_country" form="filterForm" value="<?= e($f['country']) ?>" placeholder="e.g. Canada"></div>
         <div class="field"><label>Inactive for N days</label><input type="number" name="f_inactive_days" form="filterForm" value="<?= e($f['inactive_days']) ?>" placeholder="e.g. 30"></div>
         <div class="field"><label>Max hours this month (≤)</label><input type="number" step="0.5" name="f_max_hours" form="filterForm" value="<?= e($f['max_hours_this_month']) ?>" placeholder="e.g. 0"></div>
         <div class="field"><label>&nbsp;</label><button class="btn btn-sm btn-dark" form="filterForm">Apply filters</button></div>

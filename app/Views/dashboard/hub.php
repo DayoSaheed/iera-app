@@ -1,7 +1,7 @@
 <?php
 use App\Models\Application;
 $title = 'Home'; $active = 'dashboard';
-$uk = Application::isUk($app); $online = Application::isOnline($app); $idSt = $app['id_verification_status'];
+$uk = Application::isCanada($app); $online = Application::isOnline($app); $idSt = $app['id_verification_status'];
 $lock = fn(string $label) => '<div class="blur-gate"><div class="blur-gate-msg">' . icon('lock', '', 18) . ' ' . e($label) . '</div></div>';
 $status = $approved ? 'Approved' : ($app['submitted_at'] ? Application::displayStatus($app) : 'Application not submitted');
 ?>

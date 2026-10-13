@@ -136,8 +136,8 @@ $r->get('/admin/interview-calendar', [ConnectAdminController::class, 'calendar']
 $r->post('/admin/interview-calendar/slots', [ConnectAdminController::class, 'addSlots'], ['admin']);
 $r->post('/admin/interview-calendar/slots/{id}/delete', [ConnectAdminController::class, 'deleteSlot'], ['admin']);
 $r->get('/admin/risk-assessments', [ConnectAdminController::class, 'riskAssessments'], ['admin']);
-$r->get('/admin/uk-admin', [ConnectAdminController::class, 'ukAdmin'], ['admin']);
-$r->post('/admin/uk-admin/{id}', [ConnectAdminController::class, 'saveUkAdmin'], ['admin']);
+$r->get('/admin/admin-volunteers', [ConnectAdminController::class, 'adminVolunteers'], ['admin']);
+$r->post('/admin/admin-volunteers/{id}', [ConnectAdminController::class, 'saveAdminVolunteer'], ['admin']);
 $r->get('/admin/hierarchy', [ConnectAdminController::class, 'hierarchy'], ['admin']);
 $r->post('/admin/hierarchy/regions', [ConnectAdminController::class, 'saveRegion'], ['admin']);
 $r->post('/admin/hierarchy/assignments', [ConnectAdminController::class, 'saveAssignment'], ['admin']);

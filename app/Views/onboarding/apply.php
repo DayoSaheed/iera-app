@@ -23,7 +23,7 @@
     <div class="field"><span class="field-label">Gender <span class="req">*</span></span>
       <div class="choices"><label class="choice"><input type="radio" name="gender" value="Male" <?= old('gender') === 'Male' ? 'checked' : '' ?>> Male</label><label class="choice"><input type="radio" name="gender" value="Female" <?= old('gender') === 'Female' ? 'checked' : '' ?>> Female</label></div>
     </div>
-    <div class="field" data-show-cat="UK,Online,"><label>Date of Birth <span class="req">*</span></label><input type="date" name="date_of_birth" max="<?= date('Y-m-d') ?>" value="<?= old('date_of_birth') ?>"><div class="field-hint">You must be 18 or older to volunteer with iERA.</div></div>
+    <div class="field" data-show-cat="Canada,Online,"><label>Date of Birth <span class="req">*</span></label><input type="date" name="date_of_birth" max="<?= date('Y-m-d') ?>" value="<?= old('date_of_birth') ?>"><div class="field-hint">You must be 18 or older to volunteer with iERA.</div></div>
     <div class="field" data-show-cat="Global"><label class="check"><input type="checkbox" name="is_18_plus" value="1" <?= old('is_18_plus') ? 'checked' : '' ?>><span>I confirm that I am 18 years of age or older <span class="req">*</span></span></label></div>
     <div class="field"><label class="check"><input type="checkbox" name="agreed" value="1" <?= old('agreed') ? 'checked' : '' ?>><span>I agree to create an iERA volunteer account and continue profile setup. I understand I'll complete the full volunteer agreement during onboarding.</span></label></div>
     <button class="btn btn-primary btn-lg btn-block">Join the Mission <?= icon('chevron-right', '', 16) ?></button>

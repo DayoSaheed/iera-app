@@ -48,7 +48,7 @@ final class OnboardingController extends Controller
         $cat = $req->str('category') ?: (string) Session::get('apply_category', '');
         return $this->view('onboarding/apply', [
             'u' => $u, 'category' => isset(Application::CATEGORIES[$cat]) ? $cat : '',
-            'categories' => ['Global' => ['Volunteer (Global)', 'Field outreach & in-person events', 'globe'], 'UK' => ['Volunteer (UK)', 'Campus dawah & UK activities', 'flag'], 'Online' => ['Volunteer (Online)', 'Digital content & online support', 'message-square']],
+            'categories' => ['Canada' => ['Volunteer (Canada)', 'In-person volunteering across Canada', 'flag'], 'Online' => ['Volunteer (Online)', 'Digital content & online support', 'message-square'], 'Global' => ['Volunteer (International)', 'Volunteering from outside Canada', 'globe']],
         ], 'onboarding');
     }
 
@@ -240,7 +240,7 @@ final class OnboardingController extends Controller
         $first = new \DateTime($month . '-01');
         $from = max($first->format('Y-m-d'), date('Y-m-d'));
         $to = $first->format('Y-m-t');
-        $slots = $app && Application::isUk($app) ? Onboarding::availableSlots($from, $to) : [];
+        $slots = $app && Application::isCanada($app) ? Onboarding::availableSlots($from, $to) : [];
         $byDay = [];
         foreach ($slots as $s) {
             $byDay[$s['slot_date']][] = $s;

@@ -95,7 +95,7 @@ final class Reporting
         }
         arsort($byType);
         $cats = [];
-        foreach (['Global', 'UK', 'Online'] as $c) {
+        foreach (['Global', 'Canada', 'Online'] as $c) {
             $rows = array_filter($approved, fn($m) => $m['app']['volunteer_category'] === $c);
             $cats[$c] = ['volunteers' => count($rows), 'hours' => array_sum(array_column($rows, 'hours')), 'active' => count(array_filter($rows, fn($m) => $m['hoursThisMonth'] > 0))];
         }

@@ -14,7 +14,7 @@ use App\Models\UserDocument;
 /** Admin-side actions on volunteer applications: status, roles, documents, certificates, interviews, risk assessments. */
 final class AdminReview
 {
-    public const MANAGEMENT_ROLES = ['Super Admin' => 'All', 'Global Volunteer Director' => 'All', 'UK Volunteer Manager' => 'UK', 'UK City Coordinator' => 'UK', 'Regional Manager' => 'Global', 'Regional Coordinator' => 'Global', 'Country Manager' => 'Global', 'Online Volunteer Manager' => 'Online', 'Online Team Leader' => 'Online'];
+    public const MANAGEMENT_ROLES = ['Super Admin' => 'All', 'International Volunteer Director' => 'All', 'Canada Volunteer Manager' => 'Canada', 'City Coordinator' => 'Canada', 'Regional Manager' => 'Global', 'Regional Coordinator' => 'Global', 'Country Manager' => 'Global', 'Online Volunteer Manager' => 'Online', 'Online Team Leader' => 'Online'];
     public const GLOBAL_REGIONS = ['Africa', 'Europe', 'Asia & Oceania', 'USA', 'Canada', 'Latin America'];
     public const ONLINE_PLATFORMS = ['English Chat Team', 'Arabic Chat Team', 'French Chat Team', 'Social Media Team', 'New Muslim Follow-up Team', 'Content Moderation Team', 'Live Chat Support', 'Online Dawah Team'];
     public const TASK_OPTIONS = ['Leafleting', 'Exhibition Duty', 'Mosque Collection', 'Webinar Attendance', 'Training Session', 'Fundraising', 'Street Dawah Session', 'Other'];
@@ -61,7 +61,7 @@ final class AdminReview
         return Application::update($app['id'], ['is_inactive' => $inactive, 'inactive_at' => $inactive ? now() : null]);
     }
 
-    /** UK: the only way onto the Onboarded list. */
+    /** Canada: the only way onto the Onboarded list. */
     public static function markOnboarded(array $app, bool $on, array $admin): array
     {
         $data = ['onboarded_approved' => $on];
@@ -83,10 +83,10 @@ final class AdminReview
         return $after;
     }
 
-    /** Outstanding role approvals block the UK onboarded gate when more than one role was applied for. */
+    /** Outstanding role approvals block the Onboarded gate when more than one role was applied for. */
     public static function onboardGateBlocked(array $a): bool
     {
-        $roles = Application::ukRoles($a);
+        $roles = Application::canadaRoles($a);
         return empty($a['onboarded_approved']) && count($roles) > 1 && count(array_diff($roles, $a['onboarding_approved_roles'])) > 0;
     }
 
@@ -115,16 +115,16 @@ final class AdminReview
 
     public static function manageRoles(array $app, array $selected, array $admin): array
     {
-        $canonical = array_keys(Application::UK_ROLE_ABBR);
+        $canonical = array_keys(Application::CA_ROLE_ABBR);
         $selected = array_values(array_intersect($selected, $canonical));
-        $current = Application::ukRoles($app);
+        $current = Application::canadaRoles($app);
         $legacy = array_values(array_diff($app['role_interests'], $canonical));
         $added = array_values(array_diff($selected, $current));
         $removed = array_values(array_diff($current, $selected));
         $certs = $app['certs'];
         $approved = $app['onboarding_approved_roles'];
         foreach ($added as $r) {
-            $key = Application::UK_ROLE_CERT[$r] ?? null;
+            $key = Application::CA_ROLE_CERT[$r] ?? null;
             if ($key && ($certs[$key]['status'] ?? '') !== 'approved') {
                 $certs[$key] = ($certs[$key] ?? []) + ['status' => 'approved', 'approved_by' => $admin['email'], 'approved_at' => now()];
                 $certs[$key]['status'] = 'approved';
@@ -155,10 +155,10 @@ final class AdminReview
         return $after;
     }
 
-    /** UK volunteers with the Administration role appear on the Admin volunteers page automatically. */
+    /** Canadian volunteers with the Administration role appear on the Admin volunteers page automatically. */
     public static function ensureAdminRecord(array $a): void
     {
-        if (!Application::isUk($a)) {
+        if (!Application::isCanada($a)) {
             return;
         }
         $isAdmin = in_array('Administration', $a['onboarding_approved_roles'], true) || Application::hasRole($a, 'Administration') || Application::certStatus($a, 'admin') === 'approved';
@@ -362,15 +362,15 @@ final class AdminReview
         $digits = preg_replace('/\D/', '', (string) $a['phone']);
         if ($digits !== '' && strlen($digits) < 7) { $i[] = 'Phone number too short'; }
         if ($a['date_of_birth'] && $a['is_18_plus'] && (Application::age($a['date_of_birth']) ?? 99) < 18) { $i[] = 'Under 18 but marked 18+'; }
-        if (Application::isUk($a) && $a['country']) {
+        if (Application::isCanada($a) && $a['country']) {
             $c = strtolower($a['country']);
             $ok = false;
-            foreach (['uk', 'united kingdom', 'england', 'scotland', 'wales', 'northern ireland'] as $k) {
+            foreach (['canada', 'ca'] as $k) {
                 if (str_contains($c, $k)) { $ok = true; }
             }
-            if (!$ok) { $i[] = 'UK category but country is outside UK'; }
+            if (!$ok) { $i[] = 'Canada category but country is outside Canada'; }
         }
-        if (Application::isUk($a) && $a['detected_country']) { $i[] = 'Applied for UK but submitted from ' . $a['detected_country']; }
+        if (Application::isCanada($a) && $a['detected_country']) { $i[] = 'Applied for Canada but submitted from ' . $a['detected_country']; }
         return $i;
     }
 

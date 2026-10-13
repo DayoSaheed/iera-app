@@ -10,7 +10,7 @@ final class Community
 {
     public const GROUPS = [
         'global' => ['Global Volunteers', 'globe', 'Field outreach & dawah events worldwide'],
-        'uk' => ['UK Volunteers', 'flag', 'Campus dawah & UK-based activities'],
+        'canada' => ['Canada Volunteers', 'flag', 'Campus dawah & activities across Canada'],
         'online' => ['Online Volunteers', 'message-square', 'Digital content & online dawah support'],
         'africa' => ['Africa Team', 'globe', 'Volunteers across the African continent'],
         'asia' => ['Asia Team', 'globe', 'Asia Pacific & South Asian volunteers'],
