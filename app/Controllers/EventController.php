@@ -60,7 +60,7 @@ final class EventController extends Controller
         $events = SubEvent::window($teamIds, $from . ' 00:00:00', $to . ' 23:59:59');
         $attending = SubEvent::attendingIds($u['id'], array_column($events, 'id'));
         $colors = [];
-        $palette = ['#0f766e', '#1d4ed8', '#b45309', '#7c3aed', '#be123c', '#047857', '#9333ea', '#0e7490', '#a16207', '#4338ca'];
+        $palette = ['#0a0a0a', '#3d3d3d', '#5c5c5c', '#7a7a7a', '#999999', '#262626', '#4d4d4d', '#6b6b6b', '#8a8a8a', '#adadad'];
         $i = 0;
         foreach ($teams as $t) {
             $colors[$t['id']] = $palette[$i++ % count($palette)];
@@ -77,7 +77,7 @@ final class EventController extends Controller
                 'city' => $e['city'],
                 'description' => $e['description'],
                 'min' => (int) $e['min_participants'],
-                'color' => $colors[$e['team_id']] ?? '#334155',
+                'color' => $colors[$e['team_id']] ?? '#0a0a0a',
                 'attending' => in_array($e['id'], $attending, true),
             ];
         }

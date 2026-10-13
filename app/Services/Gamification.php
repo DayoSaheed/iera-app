@@ -11,11 +11,11 @@ final class Gamification
 {
     public const XP = ['application' => 50, 'profile' => 30, 'training_module' => 100, 'report' => 20, 'photo' => 10, 'streak_bonus' => 15];
     public const LEVELS = [
-        1 => ['New Recruit', 0, 99, '#5b6168'],
-        2 => ['Active Volunteer', 100, 299, '#1d4ed8'],
-        3 => ['Dawah Contributor', 300, 599, '#15803d'],
-        4 => ['Dawah Leader', 600, 999, '#7c3aed'],
-        5 => ['Elite Ambassador', 1000, 9999, '#b45309'],
+        1 => ['New Recruit', 0, 99, '#8a8a8a'],
+        2 => ['Active Volunteer', 100, 299, '#6b6b6b'],
+        3 => ['Dawah Contributor', 300, 599, '#4a4a4a'],
+        4 => ['Dawah Leader', 600, 999, '#2b2b2b'],
+        5 => ['Elite Ambassador', 1000, 9999, '#0a0a0a'],
     ];
     public const BADGES = [
         'first_report' => ['target', 'First Report', 'Submitted your first activity report'],

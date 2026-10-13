@@ -15,8 +15,8 @@ final class Setting
     {
         return [
             // ---- Appearance ----
-            'brand_primary' => ['Primary colour', '#d4006a', 'color', 'Appearance', 'Buttons, links and highlights (magenta).'],
-            'brand_accent' => ['Accent colour', '#f6c400', 'color', 'Appearance', 'Secondary highlights and calls to action (yellow).'],
+            'brand_primary' => ['Primary colour', '#0a0a0a', 'color', 'Appearance', 'Buttons and highlights. The design is black and white: keep this black unless you have a reason not to.'],
+            'brand_accent' => ['Accent colour', '#0a0a0a', 'color', 'Appearance', 'Secondary highlights. Keep black for the monochrome look.'],
             'brand_dark' => ['Sidebar colour', '#000000', 'color', 'Appearance', 'Sidebar and dark surfaces (black).'],
             'brand_logo' => ['Logo', '', 'image', 'Appearance', 'PNG or SVG, shown in the sidebar and on the sign-in page. Square or wide, max 2 MB.'],
             'login_background' => ['Sign-in / registration background image', '', 'image', 'Appearance', 'JPG or PNG, at least 1600px wide, max 4 MB. A dark overlay keeps the text readable.'],
@@ -140,9 +140,12 @@ final class Setting
     /** Brand colours with derived shades for CSS variables. */
     public static function brand(): array
     {
-        $primary = self::hex((string) self::get('brand_primary'), '#d4006a');
-        $accent = self::hex((string) self::get('brand_accent'), '#f6c400');
-        $dark = self::hex((string) self::get('brand_dark'), '#000000');
+        // Colours saved under the old magenta/yellow defaults are treated as unset so the monochrome design applies.
+        $legacy = ['#d4006a', '#f6c400', '#000000', '#0b0b0f'];
+        $pick = fn(string $key) => in_array(strtolower((string) self::get($key)), $legacy, true) ? '' : (string) self::get($key);
+        $primary = self::hex($pick('brand_primary'), '#0a0a0a');
+        $accent = self::hex($pick('brand_accent'), '#0a0a0a');
+        $dark = self::hex((string) self::get('brand_dark'), '#0a0a0a');
         return [
             'primary' => $primary, 'primary_600' => self::shade($primary, -0.15), 'primary_50' => self::tint($primary, 0.9),
             'accent' => $accent, 'accent_50' => self::tint($accent, 0.84), 'dark' => $dark,

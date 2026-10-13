@@ -33,7 +33,7 @@ $qs = fn(array $o) => '?' . http_build_query(array_merge(['team' => $teamId, 'ye
     <svg class="chart bar-chart" viewBox="0 0 600 <?= $h ?>" role="img" aria-label="Bar chart by team">
       <?php foreach ($pt as $i => $t): $val = (float) $t['stats'][$metric]; $w = round(380 * $val / $max); $y = $i * 24 + 4; ?>
         <a href="<?= e($qs(['team' => $t['id']])) ?>"><text x="0" y="<?= $y + 14 ?>" font-size="11" fill="currentColor"><?= e(\App\Core\Str::limit($t['name'], 26)) ?></text>
-        <rect x="190" y="<?= $y ?>" width="<?= $w ?>" height="18" rx="4" fill="<?= $teamId === $t['id'] ? '#d97706' : '#0f766e' ?>"></rect>
+        <rect x="190" y="<?= $y ?>" width="<?= $w ?>" height="18" rx="4" fill="<?= $teamId === $t['id'] ? '#0a0a0a' : '#8a8a8a' ?>"></rect>
         <text x="<?= 196 + $w ?>" y="<?= $y + 13 ?>" font-size="11" fill="currentColor"><?= (int) $val ?></text></a>
       <?php endforeach; ?>
     </svg>
@@ -42,7 +42,7 @@ $qs = fn(array $o) => '?' . http_build_query(array_merge(['team' => $teamId, 'ye
     <div class="card-head"><h2>Monthly trend <?= $year ? (int) $year : (int) date('Y') ?></h2><span class="grow"></span><span class="legend"><span style="--c:#0f766e">Events</span><span style="--c:#2563eb">Reports</span><span style="--c:#d97706">Shahadas</span></span></div>
     <?php $ms = $data['monthly']; $maxm = max(1, max(array_merge(array_column($ms, 'events'), array_column($ms, 'reports'), array_column($ms, 'shahada')))); ?>
     <svg class="chart" viewBox="0 0 600 220" role="img" aria-label="Monthly trend">
-      <?php foreach ($ms as $i => $m): $x = 20 + $i * 48; foreach ([['events', '#0f766e', 0], ['reports', '#2563eb', 13], ['shahada', '#d97706', 26]] as [$k, $c, $off]): $bh = round(170 * $m[$k] / $maxm); ?>
+      <?php foreach ($ms as $i => $m): $x = 20 + $i * 48; foreach ([['events', '#0a0a0a', 0], ['reports', '#6b6b6b', 13], ['shahada', '#b5b5b5', 26]] as [$k, $c, $off]): $bh = round(170 * $m[$k] / $maxm); ?>
         <rect x="<?= $x + $off ?>" y="<?= 190 - $bh ?>" width="11" height="<?= $bh ?>" fill="<?= $c ?>" rx="2"><title><?= e($m['month']) ?>: <?= $m[$k] ?> <?= $k ?></title></rect>
       <?php endforeach; ?><text x="<?= $x + 8 ?>" y="208" font-size="11" fill="currentColor"><?= e($m['month']) ?></text><?php endforeach; ?>
     </svg>

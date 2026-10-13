@@ -9,7 +9,7 @@ use App\Models\Application;
 /** Volunteer metrics: activity, consistency, training, dormancy and risk level (per volunteer and aggregated). */
 final class Reporting
 {
-    public const ACTIVITY_COLORS = ['Street Dawah' => '#10b981', 'University Outreach' => '#3b82f6', 'Online Support' => '#8b5cf6', 'Content Creation' => '#f59e0b', 'Admin Support' => '#06b6d4', 'Event Support' => '#ec4899', 'New Muslim Support' => '#84cc16', 'Other' => '#94a3b8'];
+    public const ACTIVITY_COLORS = ['Street Dawah' => '#0a0a0a', 'University Outreach' => '#2b2b2b', 'Online Support' => '#404040', 'Content Creation' => '#575757', 'Admin Support' => '#6b6b6b', 'Event Support' => '#808080', 'New Muslim Support' => '#969696', 'Other' => '#b5b5b5'];
 
     /** Metrics for one volunteer given their reports (newest first). */
     public static function metrics(array $app, array $reports, int $completions, int $modules, int $awardXp = 0, int $stories = 0, int $published = 0): array
