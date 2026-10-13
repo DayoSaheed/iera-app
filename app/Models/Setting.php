@@ -44,6 +44,15 @@ final class Setting
             'maintenance_mode' => ['Maintenance mode', '0', 'bool', 'System', 'Only system admins can use the app.'],
             'maintenance_message' => ['Maintenance message', 'We are performing scheduled maintenance. Please check back shortly.', 'textarea', 'System', ''],
             'sharepoint_sync_enabled' => ['SharePoint sync enabled', '0', 'bool', 'Integrations', 'Requires credentials in config.php.'],
+            // ---- Microsoft Teams ----
+            'teams_enabled' => ['Post changes to Microsoft Teams', '0', 'bool', 'Microsoft Teams', 'When on, everything recorded in the app (applications, registrations, reports, events, posts, admin changes) is posted as a card in your Teams channel.'],
+            'teams_webhook_url' => ['Teams channel webhook URL', '', 'secret', 'Microsoft Teams', 'In Teams open the channel → ⋯ → Workflows → "Post to a channel when a webhook request is received" (or Connectors → Incoming Webhook) and paste the URL here. Stored encrypted.'],
+            'teams_notify_applications' => ['Send: applications & onboarding', '1', 'bool', 'Microsoft Teams', 'New applications, submissions, interviews, documents, approvals, rejections.'],
+            'teams_notify_people' => ['Send: people & registrations', '1', 'bool', 'Microsoft Teams', 'Sign-ups, registrations, profile and status changes, mentors, referrals.'],
+            'teams_notify_operations' => ['Send: events, reports & teams', '1', 'bool', 'Microsoft Teams', 'Events, attendance, event and mentor reports, vacations, teams.'],
+            'teams_notify_community' => ['Send: community activity', '1', 'bool', 'Microsoft Teams', 'Impact logs, community posts, stories, feedback, badges.'],
+            'teams_notify_admin' => ['Send: admin & system changes', '0', 'bool', 'Microsoft Teams', 'Settings, admins, templates, imports, bulk communications.'],
+            'teams_queue_only' => ['Deliver only from the scheduler', '0', 'bool', 'Microsoft Teams', 'Off: cards are sent immediately as changes happen (recommended). On: cards wait for the 5-minute scheduler run.'],
             'stripe_identity_enabled' => ['Stripe Identity enabled', '0', 'bool', 'Integrations', 'Requires keys in config.php. When off, the ID step is skipped.'],
             'reports_export_enabled' => ['Write JSON report snapshots', '1', 'bool', 'Integrations', 'Writes storage/exports/event_report.json and mentor.json every 6 hours for BI tools.'],
             // ---- Email delivery (editable by the admin; overrides config.php) ----

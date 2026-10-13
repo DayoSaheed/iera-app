@@ -55,6 +55,7 @@ final class Jobs
             'inactivity_nudge' => ['Inactivity nudge & zero-hours chaser', $daily, 'Daily at 09:00: emails approved volunteers with no activity for 30 days (reminder template) and, on the last day of the month, those with zero hours this month (chaser template).', ['hour' => 9]],
             'training_sync' => ['Training completions sync', $every6h, 'Pulls LearnDash completions from the training site and awards the Dawah Training badge (when configured).'],
             'story_sync' => ['Story hub sync', $daily, 'Imports new stories from the global iERA site.', ['hour' => 4]],
+            'teams_flush' => ['Microsoft Teams delivery', $every5, 'Retries Teams cards that could not be delivered immediately and clears old sent cards.'],
         ];
     }
 
@@ -121,6 +122,13 @@ final class Jobs
             return 'Skipped: ' . $r['error'];
         }
         return count($r['awarded']) . ' awarded, ' . count($r['skipped']) . ' skipped, ' . count($r['errors']) . ' error(s)';
+    }
+
+    public static function teams_flush(): string
+    {
+        $r = Teams::flush();
+        Teams::purge();
+        return $r['sent'] . ' card(s) delivered, ' . $r['failed'] . ' still pending';
     }
 
     public static function story_sync(): string

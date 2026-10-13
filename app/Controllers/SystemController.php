@@ -185,6 +185,27 @@ final class SystemController extends Controller
     }
 
     /** Apply pending SQL migrations from the browser (cPanel hosts rarely have shell access). */
+    public function teams(Request $req): Response
+    {
+        return $this->view('system/teams', ['enabled' => \App\Services\Teams::enabled(), 'configured' => \App\Services\Teams::webhook() !== '', 'on' => Setting::bool('teams_enabled'), 'stats' => \App\Services\Teams::stats(), 'rows' => \App\Services\Teams::recent(), 'categories' => \App\Services\Teams::CATEGORIES]);
+    }
+
+    public function teamsTest(Request $req): Response
+    {
+        $r = \App\Services\Teams::test($this->user());
+        AuditLog::log('system.teams_test', null, null, ['ok' => $r['ok']]);
+        $r['ok'] ? Flash::success('Test card delivered. Check the Teams channel.') : Flash::error('The test card could not be delivered: ' . $r['error']);
+        return $this->redirect('/system/teams');
+    }
+
+    public function teamsRetry(Request $req): Response
+    {
+        $n = \App\Services\Teams::retryFailed();
+        $r = \App\Services\Teams::flush(100);
+        Flash::success($n . ' failed card(s) queued again; ' . $r['sent'] . ' delivered now, ' . $r['failed'] . ' still pending.');
+        return $this->redirect('/system/teams');
+    }
+
     public function migrate(Request $req): Response
     {
         try {

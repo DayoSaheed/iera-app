@@ -23,6 +23,8 @@ final class AuditLog
         } catch (\Throwable) {
             // never break the request because of audit logging
         }
+        // Mirror the change into Microsoft Teams when the connector is switched on (never throws).
+        \App\Services\Teams::fromAudit($action, $entityType, $entityId, $details, $actorId ?? ($_SESSION['uid'] ?? null));
     }
 
     public static function recent(int $limit = 200, ?string $search = null): array

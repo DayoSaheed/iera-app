@@ -66,6 +66,7 @@ final class VolunteerAreaController extends Controller
         }
         $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $req->str('report_date')) ? $req->str('report_date') : date('Y-m-d');
         DB::insert('volunteer_reports', ['user_id' => $u['id'], 'report_date' => $date, 'hours' => $hours, 'activity_type' => $type, 'summary' => mb_substr($summary, 0, 4000), 'reflection' => mb_substr(trim($req->str('reflection')), 0, 4000) ?: null, 'photo_doc_id' => $photo, 'created_at' => now()]);
+        \App\Models\AuditLog::log('impact.logged', 'user', $u['id'], ['date' => $date, 'hours' => $hours, 'activity' => $type, 'summary' => mb_substr($summary, 0, 140)]);
         $this->autoPromote($u);
         Flash::success('Impact logged successfully. +' . (Gamification::XP['report'] + ($photo ? Gamification::XP['photo'] : 0)) . ' XP earned!');
         return $this->redirect('/impact');
@@ -129,6 +130,7 @@ final class VolunteerAreaController extends Controller
             return $this->redirect('/community');
         }
         Community::createPost($u, mb_substr($content, 0, 5000), $images);
+        \App\Models\AuditLog::log('community.post_created', 'user', $u['id'], ['content' => mb_substr(trim($req->str('content')), 0, 140)]);
         return $this->redirect('/community');
     }
 
@@ -249,6 +251,7 @@ final class VolunteerAreaController extends Controller
     public function rsvp(Request $req): Response
     {
         $joined = Community::toggleRsvp((int) $req->params['id'], $this->user()['id']);
+        if ($joined) { $ev = Community::event((int) $req->params['id']); \App\Models\AuditLog::log('event.rsvp', 'user', $this->user()['id'], ['event' => $ev['title'] ?? '', 'date' => $ev['event_date'] ?? '']); }
         Flash::success($joined ? "Interest registered. We'll keep you posted." : 'Interest removed.');
         return $this->back($req, '/events');
     }
@@ -310,6 +313,7 @@ final class VolunteerAreaController extends Controller
             'permission_granted' => 1, 'created_at' => now(),
         ]);
         Notification::pushMany(array_column(DB::fetchAll("SELECT id FROM users WHERE type = 'superadmin'"), 'id'), 'Story submitted for review', (User::fullName($u) ?: $u['email']) . ': ' . $title, ['category' => 'admin', 'icon' => 'book', 'link' => '/admin/stories']);
+        \App\Models\AuditLog::log('story.submitted', 'user', $u['id'], ['title' => $title, 'continent' => $continent]);
         Flash::success("Story submitted! Your story is under review. Once approved, you'll earn the Storyteller badge.");
         return $this->redirect('/stories');
     }
@@ -346,6 +350,7 @@ final class VolunteerAreaController extends Controller
         ]);
         Notification::pushMany(array_column(DB::fetchAll("SELECT id FROM users WHERE type = 'superadmin'"), 'id'), 'Issue reported: ' . $title, mb_substr($desc, 0, 120), ['category' => 'admin', 'icon' => 'alert-triangle', 'link' => '/admin/feedback']);
         try { \App\Services\NotificationRules::fire('issue_reported', ['title' => $title, 'description' => mb_substr($desc, 0, 500), 'full_name' => $anon ? 'Anonymous' : (User::fullName($u) ?: $u['email']), 'email' => $anon ? '' : $u['email'], 'category' => '', 'admin_review_link' => rtrim((string) \App\Core\Config::get('app.url'), '/') . '/admin/feedback'], null, ($anon ? 'Someone' : (User::fullName($u) ?: $u['email'])) . ' reported: ' . $title, 'alert-triangle'); } catch (\Throwable $e) { \App\Core\Logger::warning('Notification rules: ' . $e->getMessage()); }
+        \App\Models\AuditLog::log('feedback.submitted', $anon ? null : 'user', $anon ? null : $u['id'], ['title' => $title, 'type' => $req->str('issue_type'), 'anonymous' => $anon]);
         Flash::success('Feedback sent! Thank you for helping us improve.');
         return $this->back($req, '/my-feedback');
     }

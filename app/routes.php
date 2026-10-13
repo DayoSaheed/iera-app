@@ -271,6 +271,9 @@ $r->get('/system/jobs', [SystemController::class, 'jobs'], ['sysadmin', 'always'
 $r->post('/system/jobs/run', [SystemController::class, 'runJob'], ['sysadmin', 'always']);
 $r->post('/system/jobs/run-all', [SystemController::class, 'runAllJobs'], ['sysadmin', 'always']);
 $r->post('/system/settings/test-mail', [SystemController::class, 'testMail'], ['sysadmin', 'always']);
+$r->get('/system/teams', [SystemController::class, 'teams'], ['sysadmin', 'always']);
+$r->post('/system/teams/test', [SystemController::class, 'teamsTest'], ['sysadmin', 'always']);
+$r->post('/system/teams/retry', [SystemController::class, 'teamsRetry'], ['sysadmin', 'always']);
 $r->get('/system/admins', [SystemController::class, 'admins'], ['sysadmin', 'always']);
 $r->post('/system/admins', [SystemController::class, 'saveAdmin'], ['sysadmin', 'always']);
 $r->post('/system/maintenance', [SystemController::class, 'maintenance'], ['sysadmin', 'always']);

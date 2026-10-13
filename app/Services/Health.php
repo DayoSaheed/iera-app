@@ -94,6 +94,17 @@ final class Health
             $add('info', 'Default logo in use', 'Upload your organisation logo and a sign-in background image.', '/system/settings#Appearance', 'Upload branding');
         }
         usort($out, fn($a, $b) => ['error' => 0, 'warning' => 1, 'info' => 2][$a['level']] <=> ['error' => 0, 'warning' => 1, 'info' => 2][$b['level']]);
+        // Microsoft Teams connector
+        if (Setting::bool('teams_enabled') && trim((string) Setting::get('teams_webhook_url')) === '') {
+            $add('warning', 'Microsoft Teams is switched on but has no webhook URL', 'Nothing can be posted to Teams until the channel webhook URL is saved.', '/system/settings#Microsoft Teams', 'Add the webhook URL');
+        }
+        try {
+            $failed = (int) DB::fetchColumn("SELECT COUNT(*) FROM teams_outbox WHERE status = 'failed'");
+            if ($failed > 0) {
+                $add('warning', $failed . ' Teams card(s) could not be delivered', 'Open the Microsoft Teams page to see the error and retry once the webhook is fixed.', '/system/teams', 'Open Teams page');
+            }
+        } catch (\Throwable) {
+        }
         return $out;
     }
 }
